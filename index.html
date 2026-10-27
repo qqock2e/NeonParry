@@ -15,6 +15,8 @@
 @keyframes terminal-noise{0%{visibility:visible;transform:translateX(-4px);clip-path:inset(0 0 0 0)}18%{transform:translateX(6px);clip-path:inset(15% 0 0 0)}36%{visibility:hidden}48%{visibility:visible;transform:translateX(-3px);clip-path:inset(0 0 20% 0)}65%{transform:translateX(2px);opacity:.5}100%{visibility:hidden;opacity:0;transform:none}}
 @keyframes signal-break{0%{transform:translateX(-2px);text-shadow:2px 0 #e6acc9,-2px 0 #b7eaaa}22%{transform:translateX(2px)}43%{transform:none;text-shadow:none}57%{transform:translateX(-1px);text-shadow:2px 0 #e6acc9}100%{transform:none;text-shadow:none}}
 @media(prefers-reduced-motion:reduce){.arena[data-state="over"] .screen-glitch,.arena[data-state="over"] #overlay-title,.meter[data-damaged="true"]{animation:none}}
+
+.skill-choices{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:min(100%,290px);pointer-events:auto;margin-top:7px}.skill-choice{min-height:62px;border:1px solid #39453a;background:#202721;color:var(--ink);text-align:left;padding:9px 12px;font-size:13px}.skill-choice span{display:block;color:var(--muted);font-size:10px;line-height:1.7}.skill-choice[aria-pressed="true"]{border-color:var(--green);color:var(--green);background:#263326}.skill-panel{min-width:0}.skill-button{width:100%;display:flex;align-items:center;gap:12px;border:0;background:#202823;color:var(--green);padding:11px 13px;text-align:left;min-height:60px}.skill-button:disabled{cursor:default;color:#89968b}.skill-button[data-ready="true"]{background:#2b3b2d}.skill-button svg{width:30px;height:30px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.3}.skill-button strong{display:block;font-size:14px;font-weight:500}.skill-button small{display:block;font-size:10px;color:var(--muted);line-height:1.7}.skill-track{height:4px;background:#2c352e;margin-top:6px}.skill-track div{height:100%;width:0;background:var(--green)}.skill-panel [role="status"]{font-size:11px;color:var(--muted);min-height:16px;margin:8px 0 0;line-height:1.7}.arena[data-armed="true"]{outline:1px dashed #9ccbe1;outline-offset:4px}.arena[data-armed="true"] .direction{color:#9ccbe1}.legend{flex-wrap:wrap;gap:8px 16px}.legend [hidden]{display:none}.hex{width:10px;height:10px;border:1px solid #e4ca93;clip-path:polygon(25% 0,75% 0,100% 50%,75% 100%,25% 100%,0 50%)}.worm-icon{width:15px;height:7px;border:1px dashed #9ccbe1}.ransom-icon{width:8px;height:10px;border:1px solid #d5b1e8}.bestiary{font-size:12px;line-height:1.8;margin:0;padding-left:16px}.bestiary li{margin:8px 0}.bestiary b{color:var(--ink);font-weight:500}.enemy-count{font:16px monospace;fill:#dcebf0;text-anchor:middle;paint-order:stroke;stroke:#171a1b;stroke-width:3px;stroke-linejoin:round}.enemy-label{font:10px monospace;text-anchor:middle;fill:#9ccbe1}.skill-choices[hidden]{display:none}@media(max-width:740px){.skill-panel{grid-column:1/-1}.sidebar{row-gap:18px}.skill-button{min-height:54px}.skill-choices{gap:8px}.skill-choice{min-height:54px}.overlay{gap:9px;padding:24px}.overlay .symbol{margin-bottom:0;font-size:30px}.overlay strong{font-size:24px}}
 </style>
 </head>
 <body>
@@ -35,7 +37,7 @@
 <path class="hud-marks" d="M25 49l7 -10m0 10l7 -10m0 10l7 -10 M433 441l7 -10m0 10l7 -10m0 10l7 -10 M29 429h16m-16 5h8 M435 46h16m-8 5h8"/>
 <path stroke="#54634e" stroke-width="1" stroke-dasharray="3 7" fill="none" d="M29 60V95 M451 385V420"/>
 <path class="tick" d="M240 128V144 M240 336V352 M128 240H144 M336 240H352 M164 164L171 171 M309 309L316 316 M164 316L171 309 M309 171L316 164"/>
-<g id="effects"></g><g id="enemies"></g>
+<g id="effects"></g><g id="lane-states"></g><g id="enemies"></g>
 <g id="core">
 <path class="portrait-platform" d="M207 261L240 247L273 261L240 275Z"/>
 <circle class="core-rim" cx="240" cy="240" r="35" stroke-dasharray="17 5 2 5"/>
@@ -57,17 +59,18 @@
 <button class="direction" data-dir="right" aria-label="오른쪽 패링 (→ 또는 D)">→</button>
 <button class="direction" data-dir="down" aria-label="아래쪽 패링 (↓ 또는 S)">↓</button>
 <button class="direction" data-dir="left" aria-label="왼쪽 패링 (← 또는 A)">←</button>
-<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title">코어를 지키세요.</strong><p id="overlay-copy">점선 범위에 들어오면 해당 방향으로 방어.<br>정확히 판정선에 맞추면 취약률이 회복됩니다.</p></div>
+<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title">코어를 지키세요.</strong><p id="overlay-copy">점선 범위에 들어오면 해당 방향으로 방어.<br>정확히 판정선에 맞추면 취약률이 회복됩니다.</p><div class="skill-choices" id="skill-choices" role="group" aria-label="시작 스킬 선택"><button class="skill-choice" data-skill="vaccine" aria-pressed="true">＋ 백신<span>취약률 회복 · Space</span></button><button class="skill-choice" data-skill="proxy" aria-pressed="false">⇥ 프록시<span>한 방향 제거 · Shift + 방향</span></button></div></div>
 <div class="screen-glitch" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 </div>
-<div class="legend"><span><i class="dot" aria-hidden="true"></i>DDoS</span><span><i class="diamond" aria-hidden="true"></i>바이러스</span></div>
+<div class="legend" aria-label="현재 해금된 위협"><span><i class="diamond" aria-hidden="true"></i>바이러스</span><span data-unlock="3" hidden><i class="dot" aria-hidden="true"></i>DDoS</span><span data-unlock="8" hidden><i class="hex" aria-hidden="true"></i>트로이</span><span data-unlock="15" hidden><i class="worm-icon" aria-hidden="true"></i>웜</span><span data-unlock="25" hidden><i class="ransom-icon" aria-hidden="true"></i>랜섬웨어</span></div>
 <p id="message" role="status"></p>
 </div>
 <aside class="sidebar" aria-label="방어 상태 및 조작">
 <div><div class="meter-label"><label id="vulnerability-label">취약률</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill"></div></div></div>
 <div class="score-row"><div><small>방어</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div></div>
+<div class="skill-panel"><button class="skill-button" id="skill" disabled aria-label="백신 스킬"><svg viewBox="0 0 32 32" aria-hidden="true"><path id="skill-glyph" d="M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22"/></svg><span><strong id="skill-name">백신</strong><small id="skill-key">Space / 라인 스와이프</small></span></button><div class="skill-track" id="skill-meter" role="progressbar" aria-label="스킬 충전" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><div id="skill-fill"></div></div><p id="skill-status" role="status">처치할 때마다 충전됩니다.</p></div>
 <div class="controls"><button id="action">방어 시작</button><button id="share">기록 공유 ↗</button></div>
-<details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>점선 사이에서 방어할 수 있습니다. 내부 게이지가 꽉 차고 가운데 판정선에 닿는 순간 정확히 패링하면 취약률 −4%. 일반 방어는 피해 없이 적을 막습니다.</p><p>범위 안에 적이 없는 방향을 누르면 취약률 +4%, 코어 피격은 +20%. 100%를 넘으면 종료됩니다. 여러 적이 접근해도 판정선에는 순서대로 도착합니다. 진행할수록 그 간격이 짧아집니다.</p></details>
+<details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>각 라인의 짧은 눈금 사이에서 적 외곽이 밝아지면 방어할 수 있습니다. 내부 게이지가 꽉 차고 가운데 판정선에 닿는 순간 정확히 패링하면 취약률 −4%. 일반 방어는 피해 없이 적을 막습니다.</p><p>범위 밖 입력은 취약률 +4%. 피격 피해는 적마다 다릅니다. 100%를 넘으면 종료됩니다. 여러 적이 접근해도 판정선에는 순서대로 도착합니다. 진행할수록 그 간격이 짧아집니다.</p><p>스킬은 시작 전 선택합니다. 백신: Space·아이콘·라인 방향 스와이프. 프록시: Shift + 방향키/WASD·해당 라인 스와이프, 또는 준비된 아이콘을 누른 뒤 방향을 터치하세요. 프록시 처치는 충전하지 않습니다.</p><ul class="bestiary"><li><b>바이러스 / DDoS</b> — 피격 +14% / +24%.</li><li><b>트로이 · 8회</b> — 숙주 안에 숨어 있다가 다른 라인으로 튕겨 나옵니다. 놓친 숙주에서는 코어를 한 번 더 공격합니다.</li><li><b>웜 · 15회</b> — 같은 라인 처치로 카운트가 줄어듭니다. 0이면 돌진. 정밀 패링 시 −20%.</li><li><b>랜섬웨어 · 25회</b> — 빠른 접근. 피격 +8%, 해당 방향 방어 1.2초 잠금.</li></ul></details>
 <p id="share-status" role="status"></p>
 </aside>
 </section><footer></footer>
@@ -80,7 +83,18 @@ const DIRECTIONS = { up:[0,-1], right:[1,0], down:[0,1], left:[-1,0] };
 const KEYS = {ArrowUp:'up',KeyW:'up',ArrowRight:'right',KeyD:'right',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left'};
 const START_RADIUS = 220, TARGET_RADIUS = 104, IMPACT_RADIUS = 35;
 const PERFECT_WINDOW = 100, GUARD_WINDOW = 360, COOLDOWN = 300;
-const PERFECT_RECOVERY = 4, MISINPUT_DAMAGE = 4, CORE_DAMAGE = 20;
+const PERFECT_RECOVERY = 4, MISINPUT_DAMAGE = 4;
+const TYPES={
+  virus:{color:'#b7eaaa',damage:14,travel:2200,unlock:0},
+  ddos:{color:'#e6acc9',damage:24,travel:2200,unlock:3},
+  trojan:{color:'#e4ca93',damage:34,travel:1800,unlock:8},
+  worm:{color:'#9ccbe1',damage:30,travel:900,unlock:15},
+  ransom:{color:'#d5b1e8',damage:8,travel:1250,unlock:25},
+  echo:{color:'#e4ca93',damage:8,travel:700,unlock:8}
+};
+const SKILLS={vaccine:{name:'백신',cost:8,heal:32},proxy:{name:'프록시',cost:6,duration:5000}};
+let selectedSkill='vaccine',charge=0,proxyArmed=false;
+let arrivalSlots=[],nextWorm=Infinity,lockedUntil={},proxyUntil={},pointers=new Map();
 let best = 0;
 try { best = Math.max(0, Number(localStorage.getItem('neon-parry-defense-best')) || 0); } catch {}
 let mode = 'idle', score = 0, vulnerability = 0, enemies = [], effects = [], clock = 0, lastFrame = null, frame = 0;
@@ -91,13 +105,37 @@ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 const TRAVEL_TIME = 2200, MIN_ARRIVAL_GAP = GUARD_WINDOW*2+120;
 const ROTATION = {up:0,right:90,down:180,left:270};
 const random = (min,max) => min + Math.random() * (max-min);
-// All enemies use the same flight time: spacing spawn times also spaces arrivals.
-// Even at full speed, the complete ±360ms defense windows never overlap.
+// Reserve absolute arrival slots for regular attacks, Trojan rebounds and worm charges.
+// Slots remain reserved after a kill, preventing new attacks from collapsing the rhythm.
 function pace() {
   const progress = Math.min(1,clock/90000);
   return {gap:1550-(1550-MIN_ARRIVAL_GAP)*progress,travel:TRAVEL_TIME};
 }
-function scheduleNext() { nextSpawn += pace().gap + random(0,120); }
+function reserveArrival(earliest) {
+  arrivalSlots=arrivalSlots.filter(t=>t>=clock-MIN_ARRIVAL_GAP);
+  let time=earliest;
+  for(const slot of [...arrivalSlots].sort((a,b)=>a-b)) {
+    if(Math.abs(time-slot)<MIN_ARRIVAL_GAP) time=slot+MIN_ARRIVAL_GAP;
+  }
+  arrivalSlots.push(time); return time;
+}
+function availableDirections(exclude=null) {
+  return Object.keys(DIRECTIONS).filter(dir=>dir!==exclude && clock>=(proxyUntil[dir]||0));
+}
+function chooseKind() {
+  const roll=Math.random();
+  if(score>=25 && roll<.2)return 'ransom';
+  return score>=3 && roll<.58?'ddos':'virus';
+}
+function scheduleRegular() {
+  const dirs=availableDirections(previousDirection);
+  if(!dirs.length){nextSpawn=clock+200;return;}
+  const dir=dirs[Math.floor(Math.random()*dirs.length)],kind=chooseKind(),travel=TYPES[kind].travel;
+  const arrival=reserveArrival(clock+travel);
+  spawnEnemy(dir,arrival-travel,travel,kind,{arrival,trojan:score>=8&&Math.random()<.13});
+  previousDirection=dir;
+  nextSpawn=Math.max(clock+pace().gap,arrival-travel+pace().gap)+random(0,120);
+}
 function updateGuardZone(travel=TRAVEL_TIME) {
   const range = (START_RADIUS-TARGET_RADIUS)*GUARD_WINDOW/travel;
   $('guard-band').setAttribute('stroke-width',range*2);
@@ -118,6 +156,8 @@ function updateHUD() {
   $('vulnerability').setAttribute('aria-valuetext',vulnerability + '% · ' + (vulnerability > 100 ? '코어 손상' : '100% 초과 시 종료'));
   $('state-light').dataset.mode = mode;
   $('arena').dataset.state = mode;
+  updateSkillHUD();
+  for(const item of document.querySelectorAll('[data-unlock]'))item.hidden=score<Number(item.dataset.unlock);
 }
 function rememberBest() {
   if (score <= best) return;
@@ -135,6 +175,8 @@ function startGame() {
   enemies = []; effects = []; nextSpawn = 1200; lastInput = {}; messageUntil = 0; coreFlashUntil = 0; recoveryUntil = 0;
   $('enemies').replaceChildren(); $('effects').replaceChildren(); $('foreground-fx').replaceChildren();
   previousDirection=null; poseUntil=0; flashUntil=0; damagedUntil=0;
+  charge=0; proxyArmed=false; arrivalSlots=[]; nextWorm=Infinity; lockedUntil={}; proxyUntil={}; pointers.clear();
+  $('skill-choices').hidden=true; $('arena').dataset.armed='false';
   shake={at:0,until:0,power:0}; $('world').removeAttribute('transform');
   $('vulnerability').dataset.damaged='false'; resetPose();
   $('core').style.opacity = '1';
@@ -142,12 +184,12 @@ function startGame() {
   updateGuardZone(); $('vulnerability-fill').dataset.recovering = 'false';
   $('overlay').hidden = true;
   $('message').textContent = ''; $('share-status').textContent = '';
-  $('action').textContent = '일시정지'; updateHUD();
+  $('action').textContent = '일시정지'; updateHUD(); updateLaneStates();
   frame = requestAnimationFrame(loop);
 }
 function pauseGame() {
   if (mode !== 'running') return;
-  mode = 'paused'; cancelAnimationFrame(frame); lastFrame = null;
+  mode = 'paused'; cancelAnimationFrame(frame); lastFrame = null; pointers.clear(); proxyArmed=false; $('arena').dataset.armed='false';
   $('overlay-title').textContent = '일시정지';
   $('overlay-copy').textContent = '준비되면 같은 위치에서 이어가세요.';
   $('overlay-symbol').textContent = 'Ⅱ'; $('overlay').hidden = false;
@@ -166,27 +208,96 @@ function gameOver() {
   $('overlay-symbol').textContent = '×'; $('overlay-title').textContent = '코어 연결 끊김';
   $('overlay-copy').textContent = `${score}회 방어 · 취약률 ${vulnerability}%`;
   $('overlay').hidden = false; $('action').textContent = '다시 방어';
+  $('skill-choices').hidden=false; proxyArmed=false; pointers.clear(); $('arena').dataset.armed='false'; updateSkillHUD();
 }
-function spawnEnemy(dir, at=clock, travel=pace().travel, kind=Math.random()<.5?'ddos':'virus') {
-  updateGuardZone(travel);
-  const color = kind === 'ddos' ? '#e6acc9' : '#b7eaaa';
-  const group = svg('g',{});
-  const diamond = kind === 'virus';
-  const outline = svg(diamond?'path':'circle', diamond ? {d:'M0 -13L13 0L0 13L-13 0Z',fill:'#171a1b',stroke:color,'stroke-width':1.25} : {cx:0,cy:0,r:12,fill:'#171a1b',stroke:color,'stroke-width':1.25});
-  const fill = svg(diamond?'path':'circle', diamond ? {d:'M0 -11L11 0L0 11L-11 0Z',fill:color} : {cx:0,cy:0,r:10,fill:color});
-  group.append(outline,fill); $('enemies').append(group);
-  const enemy = {dir,at,travel,kind,node:group,fill,radius:START_RADIUS};
-  enemies.push(enemy); renderEnemy(enemy);
-  const [dx,dy]=DIRECTIONS[dir]; glitchAt(240+dx*START_RADIUS,240+dy*START_RADIUS,24,'spawn');
-  return enemy;
+function shapePath(kind,inset=0) {
+  const r=13-inset;
+  if(kind==='virus')return `M0 ${-r}L${r} 0L0 ${r}L${-r} 0Z`;
+  if(kind==='ddos')return `M0 ${-r}A${r} ${r} 0 1 1 0 ${r}A${r} ${r} 0 1 1 0 ${-r}Z`;
+  if(kind==='worm')return `M${-r} -5H${-r+7}V-9H4V-5H${r}V5H4V9H${-r+7}V5H${-r}Z`;
+  if(kind==='ransom')return `M${-r+3} -4V${r-1}H${r-3}V-4Z M-6 -4V-9L0 -13L6 -9V-4`;
+  return `M${-r} 0L${-r*.5} ${-r*.85}H${r*.5}L${r} 0L${r*.5} ${r*.85}H${-r*.5}Z`;
+}
+function spawnEnemy(dir, at=clock, travel=TRAVEL_TIME, kind='virus',options={}) {
+  const color=TYPES[kind].color,group=svg('g',{'data-kind':kind});
+  const outline=svg('path',{d:shapePath(kind),fill:'#171a1b',stroke:color,'stroke-width':1.25});
+  const fill=svg('path',{d:shapePath(kind,2),fill:color,stroke:kind==='ransom'?color:'none','stroke-width':.5});
+  group.append(outline,fill);
+  if(kind==='ransom')group.append(svg('path',{d:'M0 3V8',stroke:'#171a1b','stroke-width':2}));
+  const count=svg('text',{x:0,y:-19,class:'enemy-count'});group.append(count);
+  $('enemies').append(group);
+  const enemy={dir,at,travel,kind,node:group,fill,outline,count,radius:options.startRadius||START_RADIUS,startRadius:options.startRadius||START_RADIUS,arrival:options.arrival??at+travel,state:options.state||'moving',trojan:!!options.trojan,remaining:options.remaining||0,spawned:false,...options};
+  enemies.push(enemy);renderEnemy(enemy);return enemy;
+}
+function enemyPosition(enemy) {
+  const [dx,dy]=DIRECTIONS[enemy.dir];
+  if(enemy.state==='echo') {
+    const t=Math.min(1,Math.max(0,(clock-enemy.at)/enemy.travel));
+    const radius=IMPACT_RADIUS+Math.sin(t*Math.PI)*56-t*IMPACT_RADIUS;
+    return{x:240+dx*radius,y:240+dy*radius,radius};
+  }
+  if(enemy.hop && clock<enemy.hop.until) {
+    const t=Math.max(0,(clock-enemy.hop.at)/(enemy.hop.until-enemy.hop.at)),u=1-t;
+    const dest={x:240+dx*enemy.startRadius,y:240+dy*enemy.startRadius};
+    return{x:u*u*enemy.hop.x+2*u*t*240+t*t*dest.x,y:u*u*enemy.hop.y+2*u*t*240+t*t*dest.y,radius:enemy.startRadius};
+  }
+  if(enemy.state==='dormant')return{x:240+dx*enemy.startRadius,y:240+dy*enemy.startRadius,radius:enemy.startRadius};
+  const progress=Math.max(0,(clock-enemy.at)/enemy.travel);
+  const movement=enemy.kind==='worm'?progress*progress:progress;
+  const radius=enemy.startRadius-(enemy.startRadius-TARGET_RADIUS)*movement;
+  return{x:240+dx*radius,y:240+dy*radius,radius};
 }
 function renderEnemy(enemy) {
-  const progress = Math.max(0,(clock-enemy.at)/enemy.travel);
-  enemy.radius = START_RADIUS - (START_RADIUS-TARGET_RADIUS)*progress;
-  const [dx,dy] = DIRECTIONS[enemy.dir];
-  enemy.node.setAttribute('transform',`translate(${240+dx*enemy.radius} ${240+dy*enemy.radius})`);
-  // Area, rather than radius, fills linearly; it is full exactly at the target line.
+  const visible=enemy.state==='dormant'||enemy.state==='echo'||enemy.hop||clock>=enemy.at;
+  enemy.node.setAttribute('visibility',visible?'visible':'hidden');
+  const position=enemyPosition(enemy);enemy.radius=position.radius;enemy.x=position.x;enemy.y=position.y;
+  enemy.node.setAttribute('transform',`translate(${position.x} ${position.y})`);
+  const progress=enemy.state==='dormant'?0:Math.max(0,(clock-enemy.at)/enemy.travel);
   enemy.fill.setAttribute('transform',`scale(${Math.sqrt(Math.min(1,progress))})`);
+  enemy.count.textContent=enemy.state==='dormant'?enemy.remaining:enemy.kind==='worm'?'!':'';
+  const ready=enemy.state==='moving'&&(!enemy.hop||clock>=enemy.hop.until)&&Math.abs(clock-enemy.arrival)<=GUARD_WINDOW;
+  enemy.outline.setAttribute('stroke-width',ready?2.5:1.25);enemy.outline.setAttribute('stroke',ready?'#edffe3':TYPES[enemy.kind].color);
+  if(visible&&!enemy.spawned){enemy.spawned=true;glitchAt(position.x,position.y,24,enemy.kind==='trojan'||enemy.kind==='echo'?'reveal':'spawn');}
+}
+function removeEnemy(enemy) {
+  const index=enemies.indexOf(enemy);if(index<0)return false;
+  enemies.splice(index,1);enemy.node.remove();return true;
+}
+function releaseTrojan(host,defeated) {
+  if(!host.trojan || mode!=='running')return;
+  host.trojan=false;
+  glitchAt(host.x,host.y,25,'reveal');
+  if(!defeated) {
+    spawnEnemy(host.dir,clock,700,'echo',{state:'echo',startRadius:IMPACT_RADIUS});
+    showMessage('트로이 / 추가 침투','var(--pink)');return;
+  }
+  const dirs=availableDirections(host.dir);if(!dirs.length)return;
+  const dir=dirs[Math.floor(Math.random()*dirs.length)],hopEnd=clock+400,travel=TYPES.trojan.travel;
+  const arrival=reserveArrival(hopEnd+travel);
+  spawnEnemy(dir,arrival-travel,travel,'trojan',{startRadius:160,arrival,hop:{at:clock,until:hopEnd,x:host.x,y:host.y}});
+  showMessage('트로이 / 다른 경로로 탈출','#e4ca93');
+}
+function spawnWorm(dir,remaining=2+Math.floor(Math.random()*2),options={}) {
+  if(enemies.some(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir))return null;
+  return spawnEnemy(dir,clock,900,'worm',{state:'dormant',startRadius:157,remaining,trojan:score>=8&&Math.random()<.13,...options});
+}
+function tickWorms(dir) {
+  for(const worm of enemies.filter(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir)) {
+    worm.remaining--;worm.count.textContent=worm.remaining;
+    if(worm.remaining<=0){worm.state='moving';worm.arrival=reserveArrival(clock+1100);worm.at=worm.arrival-worm.travel;worm.hop={at:clock,until:worm.at,x:worm.x,y:worm.y};glitchAt(worm.x,worm.y,25,'reveal');showMessage('웜 / 돌진 대기','#9ccbe1');}
+  }
+}
+function dealDamage(amount,text,coreHit=true) {
+  vulnerability+=amount;recoveryUntil=0;$('vulnerability-fill').dataset.recovering='false';
+  if(coreHit)coreFlashUntil=clock+300;
+  damageFeedback(coreHit);showMessage(`${text} / 취약률 +${amount}%`,'var(--pink)');updateHUD();
+  if(vulnerability>100)gameOver();
+}
+function onImpact(enemy) {
+  renderEnemy(enemy);removeEnemy(enemy);
+  if(enemy.kind==='ransom')lockedUntil[enemy.dir]=clock+1200;
+  dealDamage(TYPES[enemy.kind].damage,enemy.kind==='echo'?'트로이 재침투':'코어 피격');
+  if(mode==='running')releaseTrojan(enemy,false);
 }
 function addEffect(dir,result) {
   const rotate = ROTATION[dir];
@@ -234,7 +345,7 @@ function strikePose(dir,perfect) {
 function shatterEnemy(enemy,perfect) {
   const [dx,dy]=DIRECTIONS[enemy.dir];
   const x=240+dx*enemy.radius,y=240+dy*enemy.radius;
-  const color=enemy.kind==='ddos'?'#e6acc9':'#b7eaaa';
+  const color=TYPES[enemy.kind].color;
   const group=svg('g',{transform:`translate(${x} ${y})`});
   const halves=[];
   for(let i=0;i<2;i++) {
@@ -288,52 +399,106 @@ function updateEffects() {
     $('world').setAttribute('transform',`translate(${Math.sin(elapsed*.19)*amount} ${Math.cos(elapsed*.23)*amount*.65})`);
   } else $('world').removeAttribute('transform');
 }
-function parry(dir) {
-  if (mode !== 'running' || !DIRECTIONS[dir] || clock-lastInput[dir]<COOLDOWN) return;
-  lastInput[dir] = clock;
-  const enemy = enemies.find(e=>e.dir===dir && Math.abs(clock-e.at-e.travel)<=GUARD_WINDOW);
-  if (enemy) {
-    const perfect = Math.abs(clock-enemy.at-enemy.travel)<=PERFECT_WINDOW;
-    renderEnemy(enemy); shatterEnemy(enemy,perfect); strikePose(dir,perfect); shakeCamera(perfect?2.4:1.4);
-    enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
-    score++;
-    if (perfect) {
-      vulnerability = Math.max(0,vulnerability-PERFECT_RECOVERY);
-      recoveryUntil = clock+650;
-      $('vulnerability-fill').dataset.recovering = 'true';
-    }
-    rememberBest(); updateHUD();
-    addEffect(dir,perfect?'perfect':'guard');
-    showMessage(perfect?'정밀 패링 / 취약률 −4%':'방어',perfect?'var(--green)':'var(--ink)');
+function parry(dir,inputClock=clock) {
+  if(mode!=='running'||!DIRECTIONS[dir]||clock-lastInput[dir]<COOLDOWN)return;
+  if(clock<(lockedUntil[dir]||0)){showMessage('랜섬웨어 / 방향 잠금','var(--pink)');return;}
+  lastInput[dir]=clock;
+  const enemy=enemies.find(e=>e.dir===dir&&e.state==='moving'&&(!e.hop||clock>=e.hop.until)&&Math.abs(inputClock-e.arrival)<=GUARD_WINDOW);
+  if(!enemy){dealDamage(MISINPUT_DAMAGE,'헛방어',false);addEffect(dir,'miss');return;}
+  const perfect=Math.abs(inputClock-enemy.arrival)<=PERFECT_WINDOW;
+  renderEnemy(enemy);shatterEnemy(enemy,perfect);strikePose(dir,perfect);shakeCamera(perfect?2.4:1.4);removeEnemy(enemy);
+  score++;charge=Math.min(SKILLS[selectedSkill].cost,charge+1);
+  const healing=perfect?(enemy.kind==='worm'?20:PERFECT_RECOVERY):0;
+  if(healing){vulnerability=Math.max(0,vulnerability-healing);recoveryUntil=clock+650;$('vulnerability-fill').dataset.recovering='true';}
+  rememberBest();updateHUD();addEffect(dir,perfect?'perfect':'guard');
+  showMessage(perfect?`정밀 패링 / 취약률 −${healing}%`:'방어',perfect?'var(--green)':'var(--ink)');
+  tickWorms(dir);releaseTrojan(enemy,true);checkUnlocks();
+}
+function checkUnlocks() {
+  if(score>=15&&nextWorm===Infinity)nextWorm=clock+2500;
+}
+function updateSkillHUD() {
+  const config=SKILLS[selectedSkill],ready=charge>=config.cost;
+  $('skill-name').textContent=config.name;
+  $('skill-key').textContent=selectedSkill==='vaccine'?'Space / 라인 스와이프':'Shift + 방향 / 라인 스와이프';
+  $('skill').disabled=mode!=='running'||!ready;$('skill').dataset.ready=String(ready);
+  $('skill').setAttribute('aria-label',config.name+' 스킬'+(ready?' 준비':' 충전 중'));
+  $('skill-meter').setAttribute('aria-valuemax',config.cost);$('skill-meter').setAttribute('aria-valuenow',charge);
+  $('skill-fill').style.width=(100*charge/config.cost)+'%';
+  $('skill-status').textContent=proxyArmed?'사용할 방향을 터치하세요.':ready?'준비 완료':`처치로 충전 · ${charge}/${config.cost}`;
+  $('skill-glyph').setAttribute('d',selectedSkill==='vaccine'?'M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22':'M3 7H21L29 16L21 25H3V7Z M9 11H19V21H9Z');
+}
+function selectSkill(skill) {
+  if(mode==='running'||mode==='paused')return;
+  selectedSkill=skill;charge=0;
+  for(const button of document.querySelectorAll('[data-skill]'))button.setAttribute('aria-pressed',String(button.dataset.skill===skill));
+  updateSkillHUD();
+}
+function activateSkill(dir=null) {
+  if(mode!=='running')return false;
+  const config=SKILLS[selectedSkill];
+  if(charge<config.cost){showMessage('스킬 충전 중');return false;}
+  if(selectedSkill==='proxy'&&!DIRECTIONS[dir]){proxyArmed=!proxyArmed;$('arena').dataset.armed=String(proxyArmed);updateSkillHUD();return false;}
+  charge=0;proxyArmed=false;$('arena').dataset.armed='false';
+  if(selectedSkill==='vaccine') {
+    vulnerability=Math.max(0,vulnerability-config.heal);recoveryUntil=clock+800;$('vulnerability-fill').dataset.recovering='true';
+    const ring=svg('circle',{cx:240,cy:240,r:36,fill:'none',stroke:'#b7eaaa','stroke-width':2});
+    addTimedEffect(ring,550,t=>{ring.setAttribute('r',36+t*155);ring.setAttribute('opacity',1-t);},true);
+    showMessage('백신 / 취약률 −32%');
   } else {
-    vulnerability += MISINPUT_DAMAGE;
-    recoveryUntil = 0; $('vulnerability-fill').dataset.recovering = 'false';
-    damageFeedback(); addEffect(dir,'miss'); showMessage('헛방어 / 취약률 +4%','var(--pink)'); updateHUD();
-    if (vulnerability>100) gameOver();
+    let removed=0;
+    for(const enemy of [...enemies].filter(e=>e.dir===dir)){
+      if(enemy.spawned)shatterEnemy(enemy,false);
+      if(removeEnemy(enemy)&&enemy.kind!=='echo')removed++;
+    }
+    score+=removed;rememberBest();checkUnlocks();proxyUntil[dir]=clock+config.duration;
+    addEffect(dir,'perfect');showMessage('프록시 / 경로 정리·생성 차단','#9ccbe1');
+  }
+  updateHUD();updateLaneStates();return true;
+}
+function updateLaneStates() {
+  for(const dir of Object.keys(DIRECTIONS)) {
+    let group=$('lane-state-'+dir);
+    if(!group){group=svg('g',{id:'lane-state-'+dir,transform:`rotate(${ROTATION[dir]} 240 240)`});
+      const block=svg('g',{'data-proxy':dir});block.append(svg('path',{d:'M219 50L225 44H255L261 50 M219 55H261 M224 61H256',stroke:'#9ccbe1','stroke-width':1.5,fill:'none'}));
+      const bar=svg('rect',{x:224,y:66,width:32,height:2,fill:'#9ccbe1'});block.append(bar);group.append(block);
+      const gate=svg('path',{'data-gate':dir,stroke:'#84977b','stroke-width':1,fill:'none'});group.append(gate);
+      const lock=svg('g',{'data-lock':dir});lock.append(svg('path',{d:'M227 57L253 83 M253 57L227 83',stroke:'#d5b1e8','stroke-width':2}));group.append(lock);$('lane-states').append(group);}
+    const blocked=clock<(proxyUntil[dir]||0),locked=clock<(lockedUntil[dir]||0);
+    const incoming=enemies.filter(e=>e.dir===dir&&e.state==='moving'&&e.arrival>=clock-GUARD_WINDOW).sort((a,b)=>a.arrival-b.arrival)[0];
+    const gate=group.querySelector('[data-gate]');
+    if(incoming){
+      const radiusAt=offset=>{const t=1+offset/incoming.travel;return incoming.startRadius-(incoming.startRadius-TARGET_RADIUS)*(incoming.kind==='worm'?t*t:t)};
+      const outer=240-radiusAt(-GUARD_WINDOW),inner=240-radiusAt(GUARD_WINDOW);
+      gate.setAttribute('d',`M222 ${outer}H230 M250 ${outer}H258 M222 ${inner}H230 M250 ${inner}H258`);
+      gate.setAttribute('visibility','visible');
+    }else gate.setAttribute('visibility','hidden');
+    group.querySelector('[data-proxy]').setAttribute('visibility',blocked?'visible':'hidden');
+    group.querySelector('rect').setAttribute('width',32*Math.max(0,((proxyUntil[dir]||0)-clock)/SKILLS.proxy.duration));
+    group.querySelector('[data-lock]').setAttribute('visibility',locked?'visible':'hidden');
+    const button=document.querySelector(`.direction[data-dir="${dir}"]`);button.textContent=locked?'×':{up:'↑',right:'→',down:'↓',left:'←'}[dir];
+    button.setAttribute('aria-label',{up:'위쪽',right:'오른쪽',down:'아래쪽',left:'왼쪽'}[dir]+(locked?' 방향 잠금':' 패링'));
   }
 }
 function step(delta) {
-  if (mode !== 'running') return;
-  clock += delta;
-  if (messageUntil && clock>messageUntil) { $('message').textContent=''; messageUntil=0; }
-  if (clock>=nextSpawn) {
-    const directions = Object.keys(DIRECTIONS).filter(dir=>dir!==previousDirection);
-    const dir=directions[Math.floor(Math.random()*directions.length)];
-    spawnEnemy(dir,nextSpawn); previousDirection=dir; scheduleNext();
+  if(mode!=='running')return;
+  clock+=delta;
+  if(messageUntil&&clock>messageUntil){$('message').textContent='';messageUntil=0;}
+  if(clock>=nextSpawn)scheduleRegular();
+  if(score>=15&&clock>=nextWorm){
+    const dirs=availableDirections().filter(dir=>!enemies.some(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir));
+    if(dirs.length&&enemies.filter(e=>e.kind==='worm'&&e.state==='dormant').length<2)spawnWorm(dirs[Math.floor(Math.random()*dirs.length)]);
+    nextWorm=clock+random(10000,15000);
   }
-  if (clock>=recoveryUntil) $('vulnerability-fill').dataset.recovering = 'false';
-  for (const enemy of [...enemies]) {
-    renderEnemy(enemy);
-    if (enemy.radius<=IMPACT_RADIUS) {
-      enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
-      vulnerability += CORE_DAMAGE; coreFlashUntil = clock+300;
-      recoveryUntil = 0; $('vulnerability-fill').dataset.recovering = 'false';
-      addEffect(enemy.dir,'miss'); showMessage('코어 피격 / 취약률 +20%','var(--pink)'); updateHUD(); damageFeedback(true);
-      if (vulnerability>100) { gameOver(); break; }
-    }
+  if(clock>=recoveryUntil)$('vulnerability-fill').dataset.recovering='false';
+  for(const enemy of [...enemies]) {
+    if(!enemies.includes(enemy))continue;renderEnemy(enemy);
+    if(enemy.state==='dormant'||(enemy.hop&&clock<enemy.hop.until)||clock<enemy.at)continue;
+    if(enemy.state==='echo'){if(clock>=enemy.at+enemy.travel)onImpact(enemy);}
+    else if(enemy.radius<=IMPACT_RADIUS)onImpact(enemy);
+    if(mode!=='running')break;
   }
-  updateEffects();
-  $('core').style.opacity = clock<coreFlashUntil ? '.4' : '1';
+  updateEffects();updateLaneStates();$('core').style.opacity=clock<coreFlashUntil?'.4':'1';
 }
 function loop(now) {
   if (mode !== 'running') return;
@@ -345,22 +510,42 @@ function loop(now) {
 $('action').addEventListener('click',()=>{
   if (mode==='running') pauseGame(); else if (mode==='paused') resumeGame(); else startGame();
 });
+function pointerDirection(x,y,target) {
+  const button=target.closest('[data-dir]');if(button)return button.dataset.dir;
+  const rect=$('arena').getBoundingClientRect(),dx=x-rect.left-rect.width/2,dy=y-rect.top-rect.height/2;
+  if(Math.hypot(dx,dy)<rect.width*.065)return null;
+  return Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up');
+}
 $('arena').addEventListener('pointerdown',event=>{
-  if (mode!=='running' || event.button>0) return;
-  event.preventDefault();
-  const button = event.target.closest('[data-dir]');
-  if (button) { parry(button.dataset.dir); return; }
-  const rect = $('arena').getBoundingClientRect();
-  const dx = event.clientX-rect.left-rect.width/2, dy = event.clientY-rect.top-rect.height/2;
-  if (Math.hypot(dx,dy)<rect.width*.065) return;
-  parry(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
+  if(mode!=='running'||event.button>0)return;event.preventDefault();
+  pointers.set(event.pointerId,{x:event.clientX,y:event.clientY,clock,dir:pointerDirection(event.clientX,event.clientY,event.target),dx:0,dy:0});
+  try{$('arena').setPointerCapture(event.pointerId);}catch{}
 });
+$('arena').addEventListener('pointermove',event=>{
+  const point=pointers.get(event.pointerId);if(!point)return;
+  const dx=event.clientX-point.x,dy=event.clientY-point.y;
+  if(Math.hypot(dx,dy)>Math.hypot(point.dx,point.dy)){point.dx=dx;point.dy=dy;}
+});
+$('arena').addEventListener('pointerup',event=>{
+  const point=pointers.get(event.pointerId);pointers.delete(event.pointerId);if(!point||mode!=='running')return;
+  const dx=event.clientX-point.x,dy=event.clientY-point.y;
+  if(Math.hypot(dx,dy)>Math.hypot(point.dx,point.dy)){point.dx=dx;point.dy=dy;}
+  const moved=Math.hypot(point.dx,point.dy)>=28;
+  if(moved){
+    const vertical=point.dir==='up'||point.dir==='down';
+    if(point.dir&&(vertical?Math.abs(point.dy)>Math.abs(point.dx)*1.2:Math.abs(point.dx)>Math.abs(point.dy)*1.2))activateSkill(point.dir);
+  } else if(point.dir){if(proxyArmed)activateSkill(point.dir);else parry(point.dir,clock-point.clock<=180?point.clock:clock);}
+});
+$('arena').addEventListener('pointercancel',event=>pointers.delete(event.pointerId));
+for(const button of document.querySelectorAll('[data-skill]'))button.addEventListener('click',()=>selectSkill(button.dataset.skill));
+$('skill').addEventListener('click',()=>activateSkill());
 // Native keyboard/assistive-technology activation of each direction button.
 for (const button of document.querySelectorAll('[data-dir]')) button.addEventListener('click',event=>{if (event.detail===0) parry(button.dataset.dir);});
 document.addEventListener('keydown',event=>{
   if (event.target.closest('input,textarea,select,[contenteditable]') || event.ctrlKey || event.metaKey || event.altKey) return;
   const dir = KEYS[event.code];
-  if (dir && mode==='running') { event.preventDefault(); if (!event.repeat) parry(dir); }
+  if(dir&&mode==='running'){event.preventDefault();if(!event.repeat){if(event.shiftKey&&selectedSkill==='proxy')activateSkill(dir);else parry(dir);}}
+  if(event.code==='Space'&&mode==='running'&&selectedSkill==='vaccine'){event.preventDefault();if(!event.repeat)activateSkill();}
   if (event.code==='Escape' && !event.repeat) { if(mode==='running') pauseGame(); else if(mode==='paused') resumeGame(); }
 });
 document.addEventListener('visibilitychange',()=>{if(document.hidden) pauseGame();});
@@ -374,7 +559,7 @@ $('share').addEventListener('click',async()=>{
     else $('share-status').textContent=text;
   } catch(error) { if(error.name!=='AbortError') $('share-status').textContent='주소창의 링크를 복사해 공유하세요.'; }
 });
-updateHUD();
+updateHUD();updateLaneStates();
 </script>
 </body>
 </html>
