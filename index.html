@@ -1,39 +1,217 @@
 <!doctype html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#111314"><meta name="description" content="빛의 고리가 닿는 순간 패링! 터치 한 번으로 즐기는 네온 타이밍 게임.">
-<title>Neon Parry · 한 번의 타이밍</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#111314">
+<meta name="description" content="네 방향에서 다가오는 사이버 위협을 타이밍에 맞춰 패링하고 코어를 지키세요.">
+<title>Neon Parry</title>
 <style>
-
-:root{color-scheme:dark;--bg:#111314;--panel:#171a1b;--ink:#e4e7e2;--muted:#a0a8a3;--green:#b7eaaa;--pink:#e6acc9;--line:#303635}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,"Noto Sans KR",system-ui,sans-serif;min-height:100svh;padding:0 max(24px,env(safe-area-inset-right)) 0 max(24px,env(safe-area-inset-left))}button{font:inherit;cursor:pointer;touch-action:manipulation}button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:5px}main{max-width:1160px;margin:auto}header{height:88px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.wordmark{font-family:monospace;font-size:13px;letter-spacing:2px;display:flex;align-items:center;gap:12px}.mark{width:12px;height:12px;background:var(--green);display:inline-block}.edition{font:11px monospace;letter-spacing:1px;color:var(--muted)}.layout{display:grid;grid-template-columns: .85fr 1.15fr;gap:70px;align-items:center;padding:64px 0 56px}.eyebrow{font:11px monospace;letter-spacing:2px;color:var(--green);margin:0 0 25px}.eyebrow::before{content:'↳';margin-right:12px}h1{font-size:clamp(64px,7.8vw,102px);line-height:.9;letter-spacing:-7px;font-weight:500;margin:0 0 28px}h1 span{display:block;color:var(--green)}.intro{font-size:15px;color:var(--muted);line-height:1.9;margin:0;word-break:keep-all}.index{font:11px monospace;color:var(--muted);letter-spacing:1px;margin-top:60px}.instructions{margin-top:18px;max-width:320px}.instructions summary{min-height:44px;cursor:pointer;font-size:13px;display:list-item;list-style-position:inside;color:var(--ink)}.instructions p{color:var(--muted);font-size:13px;line-height:1.9;margin:0 0 16px}.key{display:inline-block;font:11px monospace;padding:4px 7px;background:#282d2b;color:var(--ink)}.console{min-width:0}.scores{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;padding:0 6px 20px}.scores small{font-size:11px;color:var(--muted)}.scores strong{display:block;margin-top:8px;font-family:monospace;font-size:26px;font-weight:400;font-variant-numeric:tabular-nums}.scores>div:last-child{text-align:right}.scores>div:nth-child(2){text-align:center}#lives{color:var(--pink)}.arena{height:390px;background:var(--panel);position:relative;display:grid;place-items:center;overflow:hidden;touch-action:manipulation;user-select:none;isolation:isolate}.arena::before,.arena::after{content:'';position:absolute;width:14px;height:14px;border-color:#626e64;border-style:solid;pointer-events:none}.arena::before{left:16px;top:16px;border-width:1px 0 0 1px}.arena::after{right:16px;bottom:16px;border-width:0 1px 1px 0}.arena-label{position:absolute;top:20px;left:42px;font:10px monospace;letter-spacing:2px;color:var(--muted)}.signal{position:absolute;right:20px;top:20px;display:flex;gap:3px;align-items:flex-end;height:10px}.signal i{display:block;width:2px;background:var(--green)}.signal i:nth-child(1){height:4px}.signal i:nth-child(2){height:7px}.signal i:nth-child(3){height:10px}.reticle{position:absolute;width:254px;height:254px;border:1px solid #29312e;border-radius:50%;pointer-events:none}.reticle::before,.reticle::after{content:'';position:absolute;background:#39413c}.reticle::before{width:1px;height:12px;left:50%;top:-6px}.reticle::after{height:1px;width:12px;top:50%;right:-6px}.ring{position:absolute;width:120px;height:120px;border-radius:50%;border:1px solid var(--green);box-shadow:0 0 12px #b7eaaa12;pointer-events:none}.incoming{border-color:var(--pink);box-shadow:none}.core{color:var(--green);font:26px monospace;text-shadow:0 0 14px #b7eaaa40}.message{position:absolute;bottom:27px;font-size:12px;letter-spacing:.3px;color:var(--muted);min-height:18px}.arena[data-feedback="hit"] .core{color:var(--green)}.arena[data-feedback="miss"] .core{color:var(--pink)}.arena[data-feedback="hit"] .message{color:var(--green)}.arena[data-feedback="miss"] .message{color:var(--pink)}.action-row{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:14px}#action{border:0;border-radius:2px;background:var(--green);color:#182419;min-height:56px;padding:0 25px;min-width:170px;font-size:14px;font-weight:600}#action:hover{background:#c7efbd}#action:active{transform:translateY(1px);background:#a4d997}.input-hint{font-size:11px;color:var(--muted);line-height:1.8;text-align:right}.input-hint span{display:block}.bottom-bar{display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:18px 0;gap:16px}.bottom-bar p{font-size:11px;line-height:1.8;margin:0;color:var(--muted)}#share{min-height:44px;background:none;border:0;color:var(--ink);padding:0 0 0 16px;font-size:12px;white-space:nowrap}#share:hover{color:var(--green)}#status{font-size:12px;color:var(--green);min-height:18px;margin:0 0 10px}.footer{display:flex;justify-content:space-between;font:10px monospace;letter-spacing:1px;color:#8a948e;padding:20px 0 25px}.footer span:last-child{color:var(--pink)}
-@media(min-width:1400px){.layout{padding-top:90px;padding-bottom:90px}.arena{height:440px}}@media(max-width:800px){.layout{gap:32px;grid-template-columns:.8fr 1.2fr;padding:42px 0}h1{font-size:65px;letter-spacing:-4px}.arena{height:350px}.intro{font-size:13px}.index{margin-top:32px}.input-hint{font-size:10px}#action{min-width:140px;padding:0 18px}}@media(max-width:600px){body{padding-left:max(20px,env(safe-area-inset-left));padding-right:max(20px,env(safe-area-inset-right))}header{height:64px}.edition{font-size:9px}.wordmark{font-size:11px}.layout{grid-template-columns:1fr;gap:24px;padding:27px 0 25px}.eyebrow{font-size:9px;margin-bottom:15px}h1{font-size:clamp(44px,13.8vw,64px);letter-spacing:-3px;line-height:.88;margin-bottom:15px}h1 span{display:inline}.intro{font-size:12px;line-height:1.7}.intro br{display:none}.index{display:none}.instructions{margin-top:10px;max-width:none}.instructions summary{min-height:32px;font-size:12px}.scores{padding-bottom:14px}.scores strong{font-size:23px;margin-top:5px}.arena{height:clamp(260px,38svh,360px)}.action-row{margin-top:12px}#action{min-height:54px;flex:1}.input-hint{min-width:100px}.bottom-bar{padding:12px 0}.footer{padding:8px 0 20px;font-size:9px}}@media(prefers-reduced-motion:reduce){#action:active{transform:none}.core{text-shadow:none}.ring{box-shadow:none}}
+:root{color-scheme:dark;--bg:#111314;--panel:#171a1b;--ink:#e4e7e2;--muted:#a0aaa4;--green:#b7eaaa;--pink:#e6acc9;--line:#303835}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,system-ui,sans-serif;padding:0 max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));min-height:100svh}button,summary{touch-action:manipulation}button{font:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:5px}main{max-width:1040px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;min-height:84px;border-bottom:1px solid var(--line);gap:16px}h1{font-size:23px;letter-spacing:-1px;font-weight:500;margin:0}h1 span{color:var(--green)}.brand{display:flex;align-items:center;gap:14px}.brand::before{content:'';display:block;width:10px;height:10px;background:var(--green)}.state-light{width:6px;height:6px;background:var(--muted);box-shadow:12px 0 #303835,24px 0 #303835;margin-right:24px}.state-light[data-mode="running"]{background:var(--green);box-shadow:12px 0 var(--green),24px 0 var(--green)}.state-light[data-mode="over"]{background:var(--pink);box-shadow:12px 0 var(--pink),24px 0 var(--pink)}.layout{display:grid;grid-template-columns:minmax(0,650px) 240px;justify-content:space-between;gap:44px;align-items:center;padding:34px 0}.console{min-width:0}.arena{position:relative;width:100%;aspect-ratio:1;background:var(--panel);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}.arena::before,.arena::after{content:'';position:absolute;width:16px;height:16px;border-color:#69766c;border-style:solid;pointer-events:none;z-index:2}.arena::before{left:14px;top:14px;border-width:1px 0 0 1px}.arena::after{right:14px;bottom:14px;border-width:0 1px 1px 0}.arena svg{width:100%;height:100%;display:block;pointer-events:none}.lane{stroke:#303936;stroke-width:1;fill:none}.axis{stroke:#323c36;stroke-width:1;stroke-dasharray:2 9}.target{stroke:#738271;stroke-width:1;fill:none}.tick{stroke:#839780;stroke-width:1}.core{fill:#202c23;stroke:var(--green);stroke-width:1}.core-mark{stroke:var(--green);stroke-width:1.5}.direction{position:absolute;display:grid;place-items:center;width:48px;height:48px;color:#a5b5a6;background:transparent;border:0;font-family:monospace;font-size:22px;z-index:3;padding:0;touch-action:none}.direction:active{color:var(--green)}.direction[data-dir="up"]{top:4px;left:calc(50% - 24px)}.direction[data-dir="right"]{right:4px;top:calc(50% - 24px)}.direction[data-dir="down"]{bottom:4px;left:calc(50% - 24px)}.direction[data-dir="left"]{left:4px;top:calc(50% - 24px)}.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;background:#171a1bf2;z-index:4;padding:32px;text-align:center;pointer-events:none}.overlay[hidden]{display:none}.overlay strong{font-size:clamp(22px,4vw,36px);font-weight:400;letter-spacing:-1px}.overlay p{font-size:13px;line-height:1.9;color:var(--muted);max-width:285px;margin:0;word-break:keep-all}.overlay .symbol{color:var(--green);font:48px monospace;margin-bottom:12px}.sidebar{display:flex;flex-direction:column;gap:32px}.meter-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px}.meter-label output{font:14px monospace;color:var(--pink)}.meter{height:12px;background:#2a302c;position:relative;overflow:hidden}.meter-fill{height:100%;width:0;background:var(--pink)}.meter::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(20% - 2px),var(--bg) calc(20% - 2px),var(--bg) 20%);pointer-events:none}.score-row{display:flex;justify-content:space-between;gap:16px}.score-row div{display:flex;flex-direction:column;gap:8px}.score-row small{color:var(--muted);font-size:12px}.score-row strong{font:28px monospace;font-weight:400}.score-row div:last-child{text-align:right}.controls{display:flex;flex-direction:column;gap:10px}#action{min-height:54px;background:var(--green);color:#182419;border:0;border-radius:2px;font-size:14px;font-weight:600}#action:hover{background:#c5efbb}#action:active{background:#a3d695}#share{border:0;background:none;color:var(--muted);min-height:44px;font-size:12px}#share:hover{color:var(--ink)}details{font-size:13px;color:var(--muted)}summary{cursor:pointer;min-height:44px;line-height:44px;color:var(--ink)}details p{line-height:1.9;margin:4px 0 12px;word-break:keep-all}kbd{font:11px monospace;color:var(--ink);background:#292f2b;padding:3px 6px}.legend{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:8px}.dot{width:9px;height:9px;border:1px solid var(--pink);border-radius:50%}.diamond{width:8px;height:8px;border:1px solid var(--green);transform:rotate(45deg)}#message{min-height:20px;margin:14px 0 0;color:var(--green);font-size:13px}#share-status{font-size:12px;color:var(--muted);margin:0;min-height:16px}footer{border-top:1px solid var(--line);min-height:20px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+@media(min-width:1200px){.layout{padding:44px 0}}@media(max-width:740px){main{max-width:560px}header{min-height:64px}h1{font-size:21px}.layout{grid-template-columns:1fr;gap:24px;padding:22px 0}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}.controls{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:14px}.controls #action{min-width:180px}.sidebar details{grid-column:1/-1}.score-row strong{font-size:22px}.score-row small{font-size:11px}.meter-label{font-size:12px}.legend{margin-top:12px}.direction{font-size:19px}.overlay p{font-size:12px}.overlay .symbol{font-size:38px;margin-bottom:4px}#message{margin-top:10px}.sidebar #share-status{grid-column:1/-1;margin-top:-16px}details{margin-top:-12px}}@media(max-width:360px){body{padding-left:12px;padding-right:12px}.sidebar{gap:18px}.controls #action{min-width:155px}.overlay{padding:28px}.overlay strong{font-size:23px}.overlay p{font-size:11px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
 </head>
-<body><main>
-<header><div class="wordmark"><span class="mark" aria-hidden="true"></span> NEON PARRY</div><span class="edition">A GAME OF TIMING / 001</span></header>
-<section class="layout" aria-label="Neon Parry 타이밍 게임">
-<div class="editorial"><p class="eyebrow">FIND YOUR FREQUENCY</p><h1>NEON<span>PARRY.</span></h1><p class="intro">다가오는 빛, 겹쳐지는 순간.<br>단 한 번의 터치로 흐름을 이어가세요.</p><p class="index">01 / HOW TO PLAY</p><details class="instructions"><summary>플레이 방법</summary><p>분홍색 고리가 초록색 고리에 겹치는 순간 패링하세요. 플레이 영역이나 패링 버튼을 탭하거나, <span class="key">SPACE</span> 키를 누르세요. 세 번 놓치면 종료됩니다. 연속 성공할수록 빨라집니다.</p></details></div>
-<div class="console"><div class="scores" aria-label="게임 기록"><div><small>점수</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div><div><small>남은 기회</small><strong id="lives">3</strong></div></div>
-<div class="arena" id="arena" aria-label="분홍색 고리가 초록색 고리와 겹칠 때 패링하세요"><span class="arena-label" aria-hidden="true">PARRY FIELD</span><span class="signal" aria-hidden="true"><i></i><i></i><i></i></span><div class="reticle" aria-hidden="true"></div><div class="ring" aria-hidden="true"></div><div class="ring incoming" id="incoming" hidden aria-hidden="true"></div><div class="core" aria-hidden="true">+</div><div class="message" id="message" role="status">첫 번째 신호를 기다리는 중</div></div>
-<div class="action-row"><button id="action">게임 시작</button><div class="input-hint"><span>키보드 <span class="key" style="display:inline">SPACE</span></span><span>또는 플레이 영역 탭 ↗</span></div></div></div></section>
-<div class="bottom-bar"><p>계정 없이, 가볍게 한 판.<br>최고 기록은 이 브라우저에 저장됩니다.</p><button id="share">기록 공유 <span aria-hidden="true">↗</span></button></div><p id="status" role="status"></p><footer class="footer"><span>LESS NOISE. MORE FOCUS.</span><span>STAY IN SYNC.</span></footer>
+<body>
+<main>
+<header><div class="brand"><h1>NEON <span>PARRY</span></h1></div><span class="state-light" id="state-light" data-mode="idle" aria-hidden="true"></span></header>
+<section class="layout" aria-label="코어 방어 게임">
+<div class="console">
+<div class="arena" id="arena" aria-label="네 방향 방어 영역. 방향키, WASD 또는 다가오는 적의 방향을 터치하세요.">
+<svg viewBox="0 0 480 480" aria-hidden="true">
+<path class="lane" d="M217 0V136 M263 0V136 M217 344V480 M263 344V480 M0 217H136 M0 263H136 M344 217H480 M344 263H480"/>
+<path class="axis" d="M240 40V440 M40 240H440"/>
+<circle cx="240" cy="240" r="173" fill="none" stroke="#252e29"/>
+<circle class="target" cx="240" cy="240" r="104"/>
+<path class="tick" d="M240 128V144 M240 336V352 M128 240H144 M336 240H352 M164 164L171 171 M309 309L316 316 M164 316L171 309 M309 171L316 164"/>
+<g id="effects"></g><g id="enemies"></g>
+<g id="core"><path class="core" d="M240 217L263 240L240 263L217 240Z"/><path class="core-mark" d="M232 240H248 M240 232V248"/><circle cx="240" cy="240" r="34" stroke="#465342" stroke-width="1" fill="none"/></g>
+</svg>
+<button class="direction" data-dir="up" aria-label="위쪽 패링 (↑ 또는 W)">↑</button>
+<button class="direction" data-dir="right" aria-label="오른쪽 패링 (→ 또는 D)">→</button>
+<button class="direction" data-dir="down" aria-label="아래쪽 패링 (↓ 또는 S)">↓</button>
+<button class="direction" data-dir="left" aria-label="왼쪽 패링 (← 또는 A)">←</button>
+<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title">코어를 지키세요.</strong><p id="overlay-copy">적의 게이지가 꽉 차고 판정선에 닿는 순간,<br>다가오는 방향을 누르세요.</p></div>
+</div>
+<div class="legend"><span><i class="dot" aria-hidden="true"></i>DDoS</span><span><i class="diamond" aria-hidden="true"></i>바이러스</span></div>
+<p id="message" role="status"></p>
+</div>
+<aside class="sidebar" aria-label="방어 상태 및 조작">
+<div><div class="meter-label"><label id="vulnerability-label">취약률</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill"></div></div></div>
+<div class="score-row"><div><small>방어</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div></div>
+<div class="controls"><button id="action">방어 시작</button><button id="share">기록 공유 ↗</button></div>
+<details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>적 내부가 꽉 차는 순간이 패링 타이밍입니다. 원형 판정선을 지난 적도 코어에 닿기 전까지 이동합니다.</p><p>코어 피격마다 취약률 +20%. 100%까지 버티며, 100%를 넘으면 종료됩니다. 너무 빠르거나 늦은 입력은 방어하지 못합니다.</p></details>
+<p id="share-status" role="status"></p>
+</aside>
+</section><footer></footer>
 </main>
 <script>
 'use strict';
-const $=id=>document.getElementById(id);
-let best=0;try{best=Number(localStorage.getItem('neon-parry-best'))||0}catch{}
-$('best').textContent=best;
-let score=0,lives=3,playing=false,phase='idle',start=0,duration=1800,next=0,frame;
-function stats(){$('score').textContent=score;$('lives').textContent=lives;$('best').textContent=best}
-function launch(now){$('arena').dataset.feedback='';$('incoming').style.transform='scale(2.75)';start=now;duration=Math.max(850,1800-score*35);phase='approach';$('incoming').hidden=false}
-function finish(){playing=false;phase='idle';$('incoming').hidden=true;$('message').textContent=`게임 종료 · ${score}점`;$('action').textContent='다시 도전';if(score>best){best=score;try{localStorage.setItem('neon-parry-best',best)}catch{}}stats()}
-function resolve(hit,now){$('arena').dataset.feedback=hit?'hit':'miss';if(hit){score++;$('message').textContent='PARRY / 정확한 타이밍'}else{lives--;$('message').textContent='놓쳤어요!'}stats();$('incoming').hidden=true;if(lives===0){finish();return}phase='pause';next=now+650}
-function tick(now){if(!playing)return;if(phase==='pause'&&now>=next)launch(now);if(phase==='approach'){const t=(now-start)/duration;const radius=165-105*t;$('incoming').style.transform=`scale(${Math.max(.1,radius/60)})`;if(t>1.14)resolve(false,now)}if(playing)frame=requestAnimationFrame(tick)}
-function act(){const now=performance.now();if(!playing){cancelAnimationFrame(frame);score=0;lives=3;playing=true;stats();$('status').textContent='';$('action').textContent='패링!';$('message').textContent='고리가 겹칠 때!';launch(now);frame=requestAnimationFrame(tick);return}if(phase==='approach'){const t=(now-start)/duration;resolve(Math.abs(t-1)<=.14,now)}}
-$('action').addEventListener('click',act);$('arena').addEventListener('click',act);
-document.addEventListener('keydown',e=>{if(e.code==='Space'&&!e.target.closest('button, summary, input, textarea, select, [contenteditable]')){e.preventDefault();if(!e.repeat)act()}});
-document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing){cancelAnimationFrame(frame);playing=false;phase='idle';$('incoming').hidden=true;$('message').textContent='잠시 쉬었어요. 다시 시작해요!';$('action').textContent='다시 시작'}});
-$('share').addEventListener('click',async()=>{const text=`Neon Parry 최고 기록 ${best}점! 도전해 보세요.`;try{if(navigator.share){await navigator.share({title:'Neon Parry',text,url:location.href})}else if(navigator.clipboard&&location.protocol!=='file:'){await navigator.clipboard.writeText(text+' '+location.href);$('status').textContent='공유 링크를 복사했어요.'}else{$('status').textContent=text}}catch(e){if(e.name!=='AbortError')$('status').textContent='주소창의 링크를 복사해 공유하세요.'}});
-</script></body></html>
+const $ = id => document.getElementById(id);
+const NS = 'http://www.w3.org/2000/svg';
+const DIRECTIONS = { up:[0,-1], right:[1,0], down:[0,1], left:[-1,0] };
+const KEYS = {ArrowUp:'up',KeyW:'up',ArrowRight:'right',KeyD:'right',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left'};
+const START_RADIUS = 220, TARGET_RADIUS = 104, IMPACT_RADIUS = 35, WINDOW = 115, COOLDOWN = 300;
+let best = 0;
+try { best = Math.max(0, Number(localStorage.getItem('neon-parry-defense-best')) || 0); } catch {}
+let mode = 'idle', score = 0, vulnerability = 0, enemies = [], effects = [], clock = 0, lastFrame = null, frame = 0;
+let nextSpawn = {}, lastInput = {}, messageUntil = 0;
+const random = (min,max) => min + Math.random() * (max-min);
+function svg(tag, attrs) {
+  const node = document.createElementNS(NS,tag);
+  for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,value);
+  return node;
+}
+function updateHUD() {
+  $('score').textContent = score;
+  $('best').textContent = best;
+  $('vulnerability-value').textContent = vulnerability + '%';
+  $('vulnerability-fill').style.width = Math.min(100,vulnerability) + '%';
+  $('vulnerability').setAttribute('aria-valuenow',Math.min(100,vulnerability));
+  $('vulnerability').setAttribute('aria-valuetext',vulnerability + '% · ' + (vulnerability > 100 ? '코어 손상' : '100% 초과 시 종료'));
+  $('state-light').dataset.mode = mode;
+}
+function rememberBest() {
+  if (score <= best) return;
+  best = score;
+  try { localStorage.setItem('neon-parry-defense-best',best); } catch {}
+}
+function showMessage(text,color='var(--green)') {
+  $('message').textContent = text;
+  $('message').style.color = color;
+  messageUntil = clock + 800;
+}
+function startGame() {
+  cancelAnimationFrame(frame);
+  mode = 'running'; score = 0; vulnerability = 0; clock = 0; lastFrame = null;
+  enemies = []; effects = []; nextSpawn = {}; lastInput = {}; messageUntil = 0;
+  $('enemies').replaceChildren(); $('effects').replaceChildren();
+  $('core').style.opacity = '1';
+  for (const dir of Object.keys(DIRECTIONS)) { nextSpawn[dir] = random(800,2600); lastInput[dir] = -Infinity; }
+  $('overlay').hidden = true;
+  $('message').textContent = ''; $('share-status').textContent = '';
+  $('action').textContent = '일시정지'; updateHUD();
+  frame = requestAnimationFrame(loop);
+}
+function pauseGame() {
+  if (mode !== 'running') return;
+  mode = 'paused'; cancelAnimationFrame(frame); lastFrame = null;
+  $('overlay-title').textContent = '일시정지';
+  $('overlay-copy').textContent = '준비되면 같은 위치에서 이어가세요.';
+  $('overlay-symbol').textContent = 'Ⅱ'; $('overlay').hidden = false;
+  $('action').textContent = '계속하기'; updateHUD();
+}
+function resumeGame() {
+  mode = 'running'; lastFrame = null; $('overlay').hidden = true;
+  $('action').textContent = '일시정지'; updateHUD(); frame = requestAnimationFrame(loop);
+}
+function gameOver() {
+  mode = 'over'; cancelAnimationFrame(frame); rememberBest(); updateHUD();
+  $('overlay-symbol').textContent = '×'; $('overlay-title').textContent = '코어 연결 끊김';
+  $('overlay-copy').textContent = `${score}회 방어 · 취약률 ${vulnerability}%`;
+  $('overlay').hidden = false; $('action').textContent = '다시 방어';
+}
+function spawnEnemy(dir, at=clock, travel=random(1700,2250), kind=Math.random()<.5?'ddos':'virus') {
+  const color = kind === 'ddos' ? '#e6acc9' : '#b7eaaa';
+  const group = svg('g',{});
+  const diamond = kind === 'virus';
+  const outline = svg(diamond?'path':'circle', diamond ? {d:'M0 -13L13 0L0 13L-13 0Z',fill:'#171a1b',stroke:color,'stroke-width':1.25} : {cx:0,cy:0,r:12,fill:'#171a1b',stroke:color,'stroke-width':1.25});
+  const fill = svg(diamond?'path':'circle', diamond ? {d:'M0 -11L11 0L0 11L-11 0Z',fill:color} : {cx:0,cy:0,r:10,fill:color});
+  group.append(outline,fill); $('enemies').append(group);
+  const enemy = {dir,at,travel,kind,node:group,fill,radius:START_RADIUS};
+  enemies.push(enemy); renderEnemy(enemy); return enemy;
+}
+function renderEnemy(enemy) {
+  const progress = Math.max(0,(clock-enemy.at)/enemy.travel);
+  enemy.radius = START_RADIUS - (START_RADIUS-TARGET_RADIUS)*progress;
+  const [dx,dy] = DIRECTIONS[enemy.dir];
+  enemy.node.setAttribute('transform',`translate(${240+dx*enemy.radius} ${240+dy*enemy.radius})`);
+  // Area, rather than radius, fills linearly; it is full exactly at the target line.
+  enemy.fill.setAttribute('transform',`scale(${Math.sqrt(Math.min(1,progress))})`);
+}
+function addEffect(dir,hit) {
+  const rotate = {up:0,right:90,down:180,left:270}[dir];
+  const group = svg('g',{transform:`rotate(${rotate} 240 240)`,stroke:hit?'#b7eaaa':'#e6acc9',fill:'none'});
+  group.append(svg('path',{d:'M217 29V136 M263 29V136','stroke-width':1.5}));
+  if (hit) group.append(svg('path',{d:'M224 137Q240 129 256 137','stroke-width':3}));
+  $('effects').append(group); effects.push({node:group,until:clock+240});
+}
+function parry(dir) {
+  if (mode !== 'running' || clock-lastInput[dir]<COOLDOWN) return;
+  lastInput[dir] = clock;
+  // Select the closest arrival, so a later enemy cannot mask one already at the line.
+  const candidates = enemies.filter(e=>e.dir===dir).sort((a,b)=>Math.abs(clock-a.at-a.travel)-Math.abs(clock-b.at-b.travel));
+  const enemy = candidates[0];
+  if (enemy && Math.abs(clock-enemy.at-enemy.travel)<=WINDOW) {
+    enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
+    score++; rememberBest(); updateHUD(); addEffect(dir,true); showMessage('패링');
+  } else { addEffect(dir,false); showMessage('빗나감','var(--pink)'); }
+}
+function step(delta) {
+  if (mode !== 'running') return;
+  clock += delta;
+  if (messageUntil && clock>messageUntil) { $('message').textContent=''; messageUntil=0; }
+  for (const dir of Object.keys(DIRECTIONS)) {
+    if (clock>=nextSpawn[dir]) {
+      spawnEnemy(dir);
+      nextSpawn[dir] = clock + random(2100,3800);
+    }
+  }
+  for (const enemy of [...enemies]) {
+    renderEnemy(enemy);
+    if (enemy.radius<=IMPACT_RADIUS) {
+      enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
+      vulnerability += 20; $('core').style.opacity = '.4';
+      addEffect(enemy.dir,false); showMessage('코어 피격','var(--pink)'); updateHUD();
+      if (vulnerability>100) { gameOver(); break; }
+    }
+  }
+  for (const effect of [...effects]) {
+    effect.node.setAttribute('opacity',Math.max(0,(effect.until-clock)/240));
+    if (clock>=effect.until) { effect.node.remove(); effects.splice(effects.indexOf(effect),1); }
+  }
+  if (!$('message').textContent.includes('피격')) $('core').style.opacity = '1';
+}
+function loop(now) {
+  if (mode !== 'running') return;
+  // Game time freezes when paused; a stalled frame is not allowed to skip the parry window.
+  const delta = lastFrame === null ? 0 : Math.min(50,Math.max(0,now-lastFrame));
+  lastFrame = now; step(delta);
+  if (mode === 'running') frame = requestAnimationFrame(loop);
+}
+$('action').addEventListener('click',()=>{
+  if (mode==='running') pauseGame(); else if (mode==='paused') resumeGame(); else startGame();
+});
+$('arena').addEventListener('pointerdown',event=>{
+  if (mode!=='running' || event.button>0) return;
+  event.preventDefault();
+  const button = event.target.closest('[data-dir]');
+  if (button) { parry(button.dataset.dir); return; }
+  const rect = $('arena').getBoundingClientRect();
+  const dx = event.clientX-rect.left-rect.width/2, dy = event.clientY-rect.top-rect.height/2;
+  if (Math.hypot(dx,dy)<rect.width*.065) return;
+  parry(Math.abs(dx)>Math.abs(dy)?(dx>0?'right':'left'):(dy>0?'down':'up'));
+});
+// Native keyboard/assistive-technology activation of each direction button.
+for (const button of document.querySelectorAll('[data-dir]')) button.addEventListener('click',event=>{if (event.detail===0) parry(button.dataset.dir);});
+document.addEventListener('keydown',event=>{
+  if (event.target.closest('input,textarea,select,[contenteditable]') || event.ctrlKey || event.metaKey || event.altKey) return;
+  const dir = KEYS[event.code];
+  if (dir && mode==='running') { event.preventDefault(); if (!event.repeat) parry(dir); }
+  if (event.code==='Escape' && !event.repeat) { if(mode==='running') pauseGame(); else if(mode==='paused') resumeGame(); }
+});
+document.addEventListener('visibilitychange',()=>{if(document.hidden) pauseGame();});
+window.addEventListener('blur',pauseGame);
+$('share').addEventListener('click',async()=>{
+  pauseGame();
+  const text = `Neon Parry · 최고 ${best}회 방어!`;
+  try {
+    if(navigator.share) await navigator.share({title:'Neon Parry',text,url:location.href});
+    else if(navigator.clipboard && location.protocol!=='file:') { await navigator.clipboard.writeText(text+' '+location.href); $('share-status').textContent='공유 링크를 복사했어요.'; }
+    else $('share-status').textContent=text;
+  } catch(error) { if(error.name!=='AbortError') $('share-status').textContent='주소창의 링크를 복사해 공유하세요.'; }
+});
+updateHUD();
+</script>
+</body>
+</html>
