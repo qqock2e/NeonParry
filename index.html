@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1020"><meta name="description" content="빛의 고리가 닿는 순간 패링! 터치 한 번으로 즐기는 네온 타이밍 게임.">
+<title>Neon Parry · 한 번의 타이밍</title>
+<style>
+*{box-sizing:border-box}body{margin:0;background:#0b1020;color:#eaf3ff;font-family:system-ui,sans-serif;min-height:100svh;display:grid;place-items:center;padding:24px max(20px,env(safe-area-inset-right))}main{width:min(100%,560px);text-align:center}header{display:flex;align-items:center;justify-content:space-between;text-align:left}h1{font-size:22px;letter-spacing:3px}small,.hint{color:#9aaac3}.tag{color:#71fbd5;font-size:12px;letter-spacing:2px}.scores{display:flex;justify-content:space-around;margin:28px 0 8px}.scores strong{display:block;font-size:28px}.arena{height:min(48svh,380px);position:relative;display:grid;place-items:center;overflow:hidden;border-radius:28px;background:radial-gradient(ellipse,#182542,#0d1529 70%);border:1px solid #27334a;margin:18px 0;touch-action:manipulation;user-select:none}.ring{position:absolute;width:120px;height:120px;border-radius:50%;border:3px solid #71fbd5;box-shadow:0 0 28px #71fbd533}.incoming{border-color:#a294ff;box-shadow:0 0 30px #a294ff44}.core{font-size:32px;color:#71fbd5}.message{position:absolute;bottom:24px;font-weight:600;min-height:24px}button{font:inherit;cursor:pointer;touch-action:manipulation}#action{width:100%;min-height:64px;border:0;border-radius:18px;background:#71fbd5;color:#091a20;font-weight:800;font-size:19px;box-shadow:0 8px 32px #71fbd51a}button:focus-visible{outline:3px solid #fff;outline-offset:5px}.hint{font-size:14px;line-height:1.7}.footer{margin-top:28px;font-size:12px;color:#7e8ca7}#share{background:transparent;color:#becde6;border:1px solid #34405a;border-radius:12px;padding:12px 20px;margin-top:14px}#status{min-height:24px;color:#71fbd5;font-size:14px}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
+</style>
+</head>
+<body><main>
+<header><h1>NEON PARRY</h1><span class="tag">ONE TAP / ONE CHANCE</span></header>
+<p class="hint">다가오는 빛을, 정확한 순간에.</p>
+<div class="scores"><div><small>점수</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div><div><small>남은 기회</small><strong id="lives">3</strong></div></div>
+<div class="arena" id="arena" aria-label="다가오는 보라색 고리가 초록색 고리와 겹칠 때 패링하세요"><div class="ring"></div><div class="ring incoming" id="incoming" hidden></div><div class="core">✦</div><div class="message" id="message" role="status">준비됐나요?</div></div>
+<button id="action">게임 시작</button>
+<p class="hint">보라색 고리가 초록색 고리에 닿으면 탭!<br>화면이나 버튼을 터치하세요 · 키보드는 Space<br>3번 놓치면 종료. 연속 성공하면 더 빨라집니다.</p>
+<button id="share">기록 공유</button><p id="status" role="status"></p>
+<p class="footer">무료 플레이 · 계정 없이 바로 시작<br>기록은 이 브라우저에만 저장됩니다.</p>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id);
+let best=0;try{best=Number(localStorage.getItem('neon-parry-best'))||0}catch{}
+$('best').textContent=best;
+let score=0,lives=3,playing=false,phase='idle',start=0,duration=1800,next=0,frame;
+function stats(){$('score').textContent=score;$('lives').textContent=lives;$('best').textContent=best}
+function launch(now){start=now;duration=Math.max(850,1800-score*35);phase='approach';$('incoming').hidden=false}
+function finish(){playing=false;phase='idle';$('incoming').hidden=true;$('message').textContent=`終了 · ${score}점`.replace('終了','게임 종료');$('action').textContent='다시 도전';if(score>best){best=score;try{localStorage.setItem('neon-parry-best',best)}catch{}}stats()}
+function resolve(hit,now){if(hit){score++;$('message').textContent='PARRY! ✦'}else{lives--;$('message').textContent='놓쳤어요!'}stats();$('incoming').hidden=true;if(lives===0){finish();return}phase='pause';next=now+650}
+function tick(now){if(!playing)return;if(phase==='pause'&&now>=next)launch(now);if(phase==='approach'){const t=(now-start)/duration;const radius=165-105*t;$('incoming').style.transform=`scale(${Math.max(.1,radius/60)})`;if(t>1.14)resolve(false,now)}if(playing)frame=requestAnimationFrame(tick)}
+function act(){const now=performance.now();if(!playing){cancelAnimationFrame(frame);score=0;lives=3;playing=true;stats();$('status').textContent='';$('action').textContent='패링!';$('message').textContent='고리가 겹칠 때!';launch(now);frame=requestAnimationFrame(tick);return}if(phase==='approach'){const t=(now-start)/duration;resolve(Math.abs(t-1)<=.14,now)}}
+$('action').addEventListener('click',act);$('arena').addEventListener('click',act);
+document.addEventListener('keydown',e=>{if(e.code==='Space'&&e.target.tagName!=='BUTTON'){e.preventDefault();if(!e.repeat)act()}});
+document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing){cancelAnimationFrame(frame);playing=false;phase='idle';$('incoming').hidden=true;$('message').textContent='잠시 쉬었어요. 다시 시작해요!';$('action').textContent='다시 시작'}});
+$('share').addEventListener('click',async()=>{const text=`Neon Parry 최고 기록 ${best}점! 도전해 보세요.`;try{if(navigator.share){await navigator.share({title:'Neon Parry',text,url:location.href})}else if(navigator.clipboard&&location.protocol!=='file:'){await navigator.clipboard.writeText(text+' '+location.href);$('status').textContent='공유 링크를 복사했어요.'}else{$('status').textContent=text}}catch(e){if(e.name!=='AbortError')$('status').textContent='주소창의 링크를 복사해 공유하세요.'}});
+</script></body></html>
