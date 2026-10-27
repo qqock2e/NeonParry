@@ -8,7 +8,7 @@
 <title>Neon Parry</title>
 <style>
 :root{color-scheme:dark;--bg:#111314;--panel:#171a1b;--ink:#e4e7e2;--muted:#a0aaa4;--green:#b7eaaa;--pink:#e6acc9;--line:#303835}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,system-ui,sans-serif;padding:0 max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));min-height:100svh}button,summary{touch-action:manipulation}button{font:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:5px}main{max-width:1040px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;min-height:84px;border-bottom:1px solid var(--line);gap:16px}h1{font-size:23px;letter-spacing:-1px;font-weight:500;margin:0}h1 span{color:var(--green)}.brand{display:flex;align-items:center;gap:14px}.brand::before{content:'';display:block;width:10px;height:10px;background:var(--green)}.state-light{width:6px;height:6px;background:var(--muted);box-shadow:12px 0 #303835,24px 0 #303835;margin-right:24px}.state-light[data-mode="running"]{background:var(--green);box-shadow:12px 0 var(--green),24px 0 var(--green)}.state-light[data-mode="over"]{background:var(--pink);box-shadow:12px 0 var(--pink),24px 0 var(--pink)}.layout{display:grid;grid-template-columns:minmax(0,650px) 240px;justify-content:space-between;gap:44px;align-items:center;padding:34px 0}.console{min-width:0}.arena{position:relative;width:100%;aspect-ratio:1;background:var(--panel);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}.arena::before,.arena::after{content:'';position:absolute;width:16px;height:16px;border-color:#69766c;border-style:solid;pointer-events:none;z-index:2}.arena::before{left:14px;top:14px;border-width:1px 0 0 1px}.arena::after{right:14px;bottom:14px;border-width:0 1px 1px 0}.arena svg{width:100%;height:100%;display:block;pointer-events:none}.lane{stroke:#303936;stroke-width:1;fill:none}.axis{stroke:#323c36;stroke-width:1;stroke-dasharray:2 9}.target{stroke:#738271;stroke-width:1;fill:none}.tick{stroke:#839780;stroke-width:1}.core{fill:#202c23;stroke:var(--green);stroke-width:1}.core-mark{stroke:var(--green);stroke-width:1.5}.direction{position:absolute;display:grid;place-items:center;width:48px;height:48px;color:#a5b5a6;background:transparent;border:0;font-family:monospace;font-size:22px;z-index:3;padding:0;touch-action:none}.direction:active{color:var(--green)}.direction[data-dir="up"]{top:4px;left:calc(50% - 24px)}.direction[data-dir="right"]{right:4px;top:calc(50% - 24px)}.direction[data-dir="down"]{bottom:4px;left:calc(50% - 24px)}.direction[data-dir="left"]{left:4px;top:calc(50% - 24px)}.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;background:#171a1bf2;z-index:4;padding:32px;text-align:center;pointer-events:none}.overlay[hidden]{display:none}.overlay strong{font-size:clamp(22px,4vw,36px);font-weight:400;letter-spacing:-1px}.overlay p{font-size:13px;line-height:1.9;color:var(--muted);max-width:285px;margin:0;word-break:keep-all}.overlay .symbol{color:var(--green);font:48px monospace;margin-bottom:12px}.sidebar{display:flex;flex-direction:column;gap:32px}.meter-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px}.meter-label output{font:14px monospace;color:var(--pink)}.meter{height:12px;background:#2a302c;position:relative;overflow:hidden}.meter-fill{height:100%;width:0;background:var(--pink)}.meter::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(20% - 2px),var(--bg) calc(20% - 2px),var(--bg) 20%);pointer-events:none}.score-row{display:flex;justify-content:space-between;gap:16px}.score-row div{display:flex;flex-direction:column;gap:8px}.score-row small{color:var(--muted);font-size:12px}.score-row strong{font:28px monospace;font-weight:400}.score-row div:last-child{text-align:right}.controls{display:flex;flex-direction:column;gap:10px}#action{min-height:54px;background:var(--green);color:#182419;border:0;border-radius:2px;font-size:14px;font-weight:600}#action:hover{background:#c5efbb}#action:active{background:#a3d695}#share{border:0;background:none;color:var(--muted);min-height:44px;font-size:12px}#share:hover{color:var(--ink)}details{font-size:13px;color:var(--muted)}summary{cursor:pointer;min-height:44px;line-height:44px;color:var(--ink)}details p{line-height:1.9;margin:4px 0 12px;word-break:keep-all}kbd{font:11px monospace;color:var(--ink);background:#292f2b;padding:3px 6px}.legend{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:8px}.dot{width:9px;height:9px;border:1px solid var(--pink);border-radius:50%}.diamond{width:8px;height:8px;border:1px solid var(--green);transform:rotate(45deg)}#message{min-height:20px;margin:14px 0 0;color:var(--green);font-size:13px}#share-status{font-size:12px;color:var(--muted);margin:0;min-height:16px}footer{border-top:1px solid var(--line);min-height:20px}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,system-ui,sans-serif;padding:0 max(18px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(18px,env(safe-area-inset-left));min-height:100svh}button,summary{touch-action:manipulation}button{font:inherit;cursor:pointer}button:focus-visible,summary:focus-visible{outline:2px solid var(--green);outline-offset:5px}main{max-width:1040px;margin:auto}header{display:flex;justify-content:space-between;align-items:center;min-height:84px;border-bottom:1px solid var(--line);gap:16px}h1{font-size:23px;letter-spacing:-1px;font-weight:500;margin:0}h1 span{color:var(--green)}.brand{display:flex;align-items:center;gap:14px}.brand::after{content:"///";font:15px monospace;letter-spacing:-3px;color:#71806f;margin-left:4px}.brand::before{content:'';display:block;width:10px;height:10px;background:var(--green)}.state-light{width:6px;height:6px;background:var(--muted);box-shadow:12px 0 #303835,24px 0 #303835;margin-right:24px}.state-light[data-mode="running"]{background:var(--green);box-shadow:12px 0 var(--green),24px 0 var(--green)}.state-light[data-mode="over"]{background:var(--pink);box-shadow:12px 0 var(--pink),24px 0 var(--pink)}.layout{display:grid;grid-template-columns:minmax(0,650px) 240px;justify-content:space-between;gap:44px;align-items:center;padding:34px 0}.console{min-width:0}.arena{position:relative;width:100%;aspect-ratio:1;background:var(--panel);touch-action:none;user-select:none;-webkit-user-select:none;overflow:hidden}.arena::before,.arena::after{content:'';position:absolute;width:16px;height:16px;border-color:#69766c;border-style:solid;pointer-events:none;z-index:2}.arena::before{left:14px;top:14px;border-width:1px 0 0 1px}.arena::after{right:14px;bottom:14px;border-width:0 1px 1px 0}.arena svg{width:100%;height:100%;display:block;pointer-events:none}.lane{stroke:#303936;stroke-width:1;fill:none}.axis{stroke:#323c36;stroke-width:1;stroke-dasharray:2 9}.target{stroke:#738271;stroke-width:1;fill:none}.tick{stroke:#839780;stroke-width:1}.core{fill:#202c23;stroke:var(--green);stroke-width:1}.core-mark{stroke:var(--green);stroke-width:1.5}.direction{position:absolute;display:grid;place-items:center;width:48px;height:48px;color:#a5b5a6;background:transparent;border:0;font-family:monospace;font-size:22px;z-index:3;padding:0;touch-action:none}.direction:active{color:var(--green)}.direction[data-dir="up"]{top:4px;left:calc(50% - 24px)}.direction[data-dir="right"]{right:4px;top:calc(50% - 24px)}.direction[data-dir="down"]{bottom:4px;left:calc(50% - 24px)}.direction[data-dir="left"]{left:4px;top:calc(50% - 24px)}.overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;background:#171a1bf2;z-index:4;padding:32px;text-align:center;pointer-events:none}.overlay[hidden]{display:none}.overlay strong{font-size:clamp(22px,4vw,36px);font-weight:400;letter-spacing:-1px}.overlay p{font-size:13px;line-height:1.9;color:var(--muted);max-width:285px;margin:0;word-break:keep-all}.overlay .symbol{color:var(--green);font:48px monospace;margin-bottom:12px}.sidebar{display:flex;flex-direction:column;gap:32px}.meter-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px}.meter-label output{font:14px monospace;color:var(--pink)}.meter{height:12px;background:#2a302c;position:relative;overflow:hidden}.meter-fill{height:100%;width:0;background:var(--pink)}.meter::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(20% - 2px),var(--bg) calc(20% - 2px),var(--bg) 20%);pointer-events:none}.score-row{display:flex;justify-content:space-between;gap:16px}.score-row div{display:flex;flex-direction:column;gap:8px}.score-row small{color:var(--muted);font-size:12px}.score-row strong{font:28px monospace;font-weight:400}.score-row div:last-child{text-align:right}.controls{display:flex;flex-direction:column;gap:10px}#action{min-height:54px;background:var(--green);color:#182419;border:0;border-radius:2px;font-size:14px;font-weight:600}#action:hover{background:#c5efbb}#action:active{background:#a3d695}#share{border:0;background:none;color:var(--muted);min-height:44px;font-size:12px}#share:hover{color:var(--ink)}details{font-size:13px;color:var(--muted)}summary{cursor:pointer;min-height:44px;line-height:44px;color:var(--ink)}details p{line-height:1.9;margin:4px 0 12px;word-break:keep-all}kbd{font:11px monospace;color:var(--ink);background:#292f2b;padding:3px 6px}.legend{display:flex;gap:18px;margin-top:14px;font-size:12px;color:var(--muted)}.legend span{display:flex;align-items:center;gap:8px}.dot{width:9px;height:9px;border:1px solid var(--pink);border-radius:50%}.diamond{width:8px;height:8px;border:1px solid var(--green);transform:rotate(45deg)}#message{min-height:20px;margin:14px 0 0;color:var(--green);font-size:13px}#share-status{font-size:12px;color:var(--muted);margin:0;min-height:16px}footer{border-top:1px dashed var(--line);min-height:20px;position:relative}footer::before{content:"-- / --";position:absolute;right:0;top:10px;color:#758271;font:11px monospace;letter-spacing:2px}.arena .hud-marks{stroke:#66765e;stroke-width:1;fill:none}.meter-label::before{content:"///";color:#7c8a75;font:12px monospace;letter-spacing:-2px;margin-right:7px}.meter-label label{margin-right:auto}.meter-fill[data-recovering="true"]{background:var(--green)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 @media(min-width:1200px){.layout{padding:44px 0}}@media(max-width:740px){main{max-width:560px}header{min-height:64px}h1{font-size:21px}.layout{grid-template-columns:1fr;gap:24px;padding:22px 0}.sidebar{display:grid;grid-template-columns:1fr 1fr;gap:20px 24px}.controls{grid-column:1/-1;display:grid;grid-template-columns:1fr auto;gap:14px}.controls #action{min-width:180px}.sidebar details{grid-column:1/-1}.score-row strong{font-size:22px}.score-row small{font-size:11px}.meter-label{font-size:12px}.legend{margin-top:12px}.direction{font-size:19px}.overlay p{font-size:12px}.overlay .symbol{font-size:38px;margin-bottom:4px}#message{margin-top:10px}.sidebar #share-status{grid-column:1/-1;margin-top:-16px}details{margin-top:-12px}}@media(max-width:360px){body{padding-left:12px;padding-right:12px}.sidebar{gap:18px}.controls #action{min-width:155px}.overlay{padding:28px}.overlay strong{font-size:23px}.overlay p{font-size:11px}}@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto}}
 </style>
 </head>
@@ -22,7 +22,12 @@
 <path class="lane" d="M217 0V136 M263 0V136 M217 344V480 M263 344V480 M0 217H136 M0 263H136 M344 217H480 M344 263H480"/>
 <path class="axis" d="M240 40V440 M40 240H440"/>
 <circle cx="240" cy="240" r="173" fill="none" stroke="#252e29"/>
+<circle id="guard-band" cx="240" cy="240" r="104" fill="none" stroke="#b7eaaa" stroke-opacity=".045" stroke-width="38"/>
+<circle id="guard-outer" cx="240" cy="240" r="123" fill="none" stroke="#56644f" stroke-opacity=".5" stroke-dasharray="2 8"/>
+<circle id="guard-inner" cx="240" cy="240" r="85" fill="none" stroke="#56644f" stroke-opacity=".5" stroke-dasharray="2 8"/>
 <circle class="target" cx="240" cy="240" r="104"/>
+<path class="hud-marks" d="M25 49l7 -10m0 10l7 -10m0 10l7 -10 M433 441l7 -10m0 10l7 -10m0 10l7 -10 M29 429h16m-16 5h8 M435 46h16m-8 5h8"/>
+<path stroke="#54634e" stroke-width="1" stroke-dasharray="3 7" fill="none" d="M29 60V95 M451 385V420"/>
 <path class="tick" d="M240 128V144 M240 336V352 M128 240H144 M336 240H352 M164 164L171 171 M309 309L316 316 M164 316L171 309 M309 171L316 164"/>
 <g id="effects"></g><g id="enemies"></g>
 <g id="core"><path class="core" d="M240 217L263 240L240 263L217 240Z"/><path class="core-mark" d="M232 240H248 M240 232V248"/><circle cx="240" cy="240" r="34" stroke="#465342" stroke-width="1" fill="none"/></g>
@@ -31,7 +36,7 @@
 <button class="direction" data-dir="right" aria-label="오른쪽 패링 (→ 또는 D)">→</button>
 <button class="direction" data-dir="down" aria-label="아래쪽 패링 (↓ 또는 S)">↓</button>
 <button class="direction" data-dir="left" aria-label="왼쪽 패링 (← 또는 A)">←</button>
-<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title">코어를 지키세요.</strong><p id="overlay-copy">적의 게이지가 꽉 차고 판정선에 닿는 순간,<br>다가오는 방향을 누르세요.</p></div>
+<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title">코어를 지키세요.</strong><p id="overlay-copy">점선 범위에 들어오면 해당 방향으로 방어.<br>정확히 판정선에 맞추면 취약률이 회복됩니다.</p></div>
 </div>
 <div class="legend"><span><i class="dot" aria-hidden="true"></i>DDoS</span><span><i class="diamond" aria-hidden="true"></i>바이러스</span></div>
 <p id="message" role="status"></p>
@@ -40,7 +45,7 @@
 <div><div class="meter-label"><label id="vulnerability-label">취약률</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill"></div></div></div>
 <div class="score-row"><div><small>방어</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div></div>
 <div class="controls"><button id="action">방어 시작</button><button id="share">기록 공유 ↗</button></div>
-<details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>적 내부가 꽉 차는 순간이 패링 타이밍입니다. 원형 판정선을 지난 적도 코어에 닿기 전까지 이동합니다.</p><p>코어 피격마다 취약률 +20%. 100%까지 버티며, 100%를 넘으면 종료됩니다. 너무 빠르거나 늦은 입력은 방어하지 못합니다.</p></details>
+<details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>점선 사이에서 방어할 수 있습니다. 내부 게이지가 꽉 차고 가운데 판정선에 닿는 순간 정확히 패링하면 취약률 −4%. 일반 방어는 피해 없이 적을 막습니다.</p><p>범위 안에 적이 없는 방향을 누르면 취약률 +4%, 코어 피격은 +20%. 100%를 넘으면 종료됩니다. 적은 한 번에 하나씩 오며 점점 빨라집니다.</p></details>
 <p id="share-status" role="status"></p>
 </aside>
 </section><footer></footer>
@@ -51,12 +56,27 @@ const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
 const DIRECTIONS = { up:[0,-1], right:[1,0], down:[0,1], left:[-1,0] };
 const KEYS = {ArrowUp:'up',KeyW:'up',ArrowRight:'right',KeyD:'right',ArrowDown:'down',KeyS:'down',ArrowLeft:'left',KeyA:'left'};
-const START_RADIUS = 220, TARGET_RADIUS = 104, IMPACT_RADIUS = 35, WINDOW = 115, COOLDOWN = 300;
+const START_RADIUS = 220, TARGET_RADIUS = 104, IMPACT_RADIUS = 35;
+const PERFECT_WINDOW = 100, GUARD_WINDOW = 360, COOLDOWN = 300;
+const PERFECT_RECOVERY = 4, MISINPUT_DAMAGE = 4, CORE_DAMAGE = 20;
 let best = 0;
 try { best = Math.max(0, Number(localStorage.getItem('neon-parry-defense-best')) || 0); } catch {}
 let mode = 'idle', score = 0, vulnerability = 0, enemies = [], effects = [], clock = 0, lastFrame = null, frame = 0;
-let nextSpawn = {}, lastInput = {}, messageUntil = 0;
+let nextSpawn = Infinity, lastInput = {}, messageUntil = 0, coreFlashUntil = 0, recoveryUntil = 0;
 const random = (min,max) => min + Math.random() * (max-min);
+// One active threat at a time, including one that has passed the defense ring.
+// Both the rest gap and travel time ramp smoothly over 90 seconds of active play.
+function pace() {
+  const progress = Math.min(1,clock/90000);
+  return {gap:1100-920*progress,travel:2300-850*progress};
+}
+function scheduleNext() { nextSpawn = clock + pace().gap + random(0,140); }
+function updateGuardZone(travel=2300) {
+  const range = (START_RADIUS-TARGET_RADIUS)*GUARD_WINDOW/travel;
+  $('guard-band').setAttribute('stroke-width',range*2);
+  $('guard-outer').setAttribute('r',TARGET_RADIUS+range);
+  $('guard-inner').setAttribute('r',TARGET_RADIUS-range);
+}
 function svg(tag, attrs) {
   const node = document.createElementNS(NS,tag);
   for (const [key,value] of Object.entries(attrs)) node.setAttribute(key,value);
@@ -84,10 +104,11 @@ function showMessage(text,color='var(--green)') {
 function startGame() {
   cancelAnimationFrame(frame);
   mode = 'running'; score = 0; vulnerability = 0; clock = 0; lastFrame = null;
-  enemies = []; effects = []; nextSpawn = {}; lastInput = {}; messageUntil = 0;
+  enemies = []; effects = []; nextSpawn = 1200; lastInput = {}; messageUntil = 0; coreFlashUntil = 0; recoveryUntil = 0;
   $('enemies').replaceChildren(); $('effects').replaceChildren();
   $('core').style.opacity = '1';
-  for (const dir of Object.keys(DIRECTIONS)) { nextSpawn[dir] = random(800,2600); lastInput[dir] = -Infinity; }
+  for (const dir of Object.keys(DIRECTIONS)) lastInput[dir] = -Infinity;
+  updateGuardZone(); $('vulnerability-fill').dataset.recovering = 'false';
   $('overlay').hidden = true;
   $('message').textContent = ''; $('share-status').textContent = '';
   $('action').textContent = '일시정지'; updateHUD();
@@ -111,7 +132,9 @@ function gameOver() {
   $('overlay-copy').textContent = `${score}회 방어 · 취약률 ${vulnerability}%`;
   $('overlay').hidden = false; $('action').textContent = '다시 방어';
 }
-function spawnEnemy(dir, at=clock, travel=random(1700,2250), kind=Math.random()<.5?'ddos':'virus') {
+function spawnEnemy(dir, at=clock, travel=pace().travel, kind=Math.random()<.5?'ddos':'virus') {
+  if (enemies.length) return null;
+  nextSpawn = Infinity; updateGuardZone(travel);
   const color = kind === 'ddos' ? '#e6acc9' : '#b7eaaa';
   const group = svg('g',{});
   const diamond = kind === 'virus';
@@ -129,40 +152,53 @@ function renderEnemy(enemy) {
   // Area, rather than radius, fills linearly; it is full exactly at the target line.
   enemy.fill.setAttribute('transform',`scale(${Math.sqrt(Math.min(1,progress))})`);
 }
-function addEffect(dir,hit) {
+function addEffect(dir,result) {
   const rotate = {up:0,right:90,down:180,left:270}[dir];
-  const group = svg('g',{transform:`rotate(${rotate} 240 240)`,stroke:hit?'#b7eaaa':'#e6acc9',fill:'none'});
+  const group = svg('g',{transform:`rotate(${rotate} 240 240)`,stroke:result==='miss'?'#e6acc9':result==='perfect'?'#b7eaaa':'#c1cec3',fill:'none'});
   group.append(svg('path',{d:'M217 29V136 M263 29V136','stroke-width':1.5}));
-  if (hit) group.append(svg('path',{d:'M224 137Q240 129 256 137','stroke-width':3}));
+  if (result!=='miss') group.append(svg('path',{d:'M224 137Q240 129 256 137','stroke-width':result==='perfect'?3:1.5}));
+  if (result==='perfect') group.append(svg('path',{d:'M222 122l5 -7m4 7l5 -7m4 7l5 -7','stroke-width':1.5}));
   $('effects').append(group); effects.push({node:group,until:clock+240});
 }
 function parry(dir) {
-  if (mode !== 'running' || clock-lastInput[dir]<COOLDOWN) return;
+  if (mode !== 'running' || !DIRECTIONS[dir] || clock-lastInput[dir]<COOLDOWN) return;
   lastInput[dir] = clock;
-  // Select the closest arrival, so a later enemy cannot mask one already at the line.
-  const candidates = enemies.filter(e=>e.dir===dir).sort((a,b)=>Math.abs(clock-a.at-a.travel)-Math.abs(clock-b.at-b.travel));
-  const enemy = candidates[0];
-  if (enemy && Math.abs(clock-enemy.at-enemy.travel)<=WINDOW) {
+  const enemy = enemies.find(e=>e.dir===dir && Math.abs(clock-e.at-e.travel)<=GUARD_WINDOW);
+  if (enemy) {
+    const perfect = Math.abs(clock-enemy.at-enemy.travel)<=PERFECT_WINDOW;
     enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
-    score++; rememberBest(); updateHUD(); addEffect(dir,true); showMessage('패링');
-  } else { addEffect(dir,false); showMessage('빗나감','var(--pink)'); }
+    score++;
+    if (perfect) {
+      vulnerability = Math.max(0,vulnerability-PERFECT_RECOVERY);
+      recoveryUntil = clock+650;
+      $('vulnerability-fill').dataset.recovering = 'true';
+    }
+    rememberBest(); updateHUD(); scheduleNext();
+    addEffect(dir,perfect?'perfect':'guard');
+    showMessage(perfect?'정밀 패링 / 취약률 −4%':'방어',perfect?'var(--green)':'var(--ink)');
+  } else {
+    vulnerability += MISINPUT_DAMAGE;
+    recoveryUntil = 0; $('vulnerability-fill').dataset.recovering = 'false';
+    addEffect(dir,'miss'); showMessage('헛방어 / 취약률 +4%','var(--pink)'); updateHUD();
+    if (vulnerability>100) gameOver();
+  }
 }
 function step(delta) {
   if (mode !== 'running') return;
   clock += delta;
   if (messageUntil && clock>messageUntil) { $('message').textContent=''; messageUntil=0; }
-  for (const dir of Object.keys(DIRECTIONS)) {
-    if (clock>=nextSpawn[dir]) {
-      spawnEnemy(dir);
-      nextSpawn[dir] = clock + random(2100,3800);
-    }
+  if (!enemies.length && clock>=nextSpawn) {
+    const directions = Object.keys(DIRECTIONS);
+    spawnEnemy(directions[Math.floor(Math.random()*directions.length)]);
   }
+  if (clock>=recoveryUntil) $('vulnerability-fill').dataset.recovering = 'false';
   for (const enemy of [...enemies]) {
     renderEnemy(enemy);
     if (enemy.radius<=IMPACT_RADIUS) {
       enemy.node.remove(); enemies.splice(enemies.indexOf(enemy),1);
-      vulnerability += 20; $('core').style.opacity = '.4';
-      addEffect(enemy.dir,false); showMessage('코어 피격','var(--pink)'); updateHUD();
+      vulnerability += CORE_DAMAGE; coreFlashUntil = clock+300;
+      recoveryUntil = 0; $('vulnerability-fill').dataset.recovering = 'false';
+      addEffect(enemy.dir,'miss'); showMessage('코어 피격 / 취약률 +20%','var(--pink)'); updateHUD(); scheduleNext();
       if (vulnerability>100) { gameOver(); break; }
     }
   }
@@ -170,7 +206,7 @@ function step(delta) {
     effect.node.setAttribute('opacity',Math.max(0,(effect.until-clock)/240));
     if (clock>=effect.until) { effect.node.remove(); effects.splice(effects.indexOf(effect),1); }
   }
-  if (!$('message').textContent.includes('피격')) $('core').style.opacity = '1';
+  $('core').style.opacity = clock<coreFlashUntil ? '.4' : '1';
 }
 function loop(now) {
   if (mode !== 'running') return;
