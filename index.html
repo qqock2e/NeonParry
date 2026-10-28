@@ -68,7 +68,7 @@
 <aside class="sidebar" aria-label="방어 상태 및 조작">
 <div><div class="meter-label"><label id="vulnerability-label">취약률</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill"></div></div></div>
 <div class="score-row"><div><small>방어</small><strong id="score">0</strong></div><div><small>최고 기록</small><strong id="best">0</strong></div></div>
-<div class="skill-panel"><button class="skill-button" id="skill" disabled aria-label="백신 스킬"><svg viewBox="0 0 32 32" aria-hidden="true"><path id="skill-glyph" d="M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22"/></svg><span><strong id="skill-name">백신</strong><small id="skill-key">Space / 라인 스와이프</small></span></button><div class="skill-track" id="skill-meter" role="progressbar" aria-label="스킬 충전" aria-valuemin="0" aria-valuemax="8" aria-valuenow="0"><div id="skill-fill"></div></div><p id="skill-status" role="status">처치할 때마다 충전됩니다.</p></div>
+<div class="skill-panel"><button class="skill-button" id="skill" disabled aria-label="백신 스킬"><svg viewBox="0 0 32 32" aria-hidden="true"><path id="skill-glyph" d="M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22"/></svg><span><strong id="skill-name">백신</strong><small id="skill-key">Space / 라인 스와이프</small></span></button><div class="skill-track" id="skill-meter" role="progressbar" aria-label="스킬 충전" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><div id="skill-fill"></div></div><p id="skill-status" role="status">처치할 때마다 충전됩니다.</p></div>
 <div class="controls"><button id="action">방어 시작</button><button id="share">기록 공유 ↗</button></div>
 <details><summary>조작 방법</summary><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd><br>터치: 플레이 영역의 위·왼쪽·아래·오른쪽을 누르세요.</p><p>각 라인의 짧은 눈금 사이에서 적 외곽이 밝아지면 방어할 수 있습니다. 내부 게이지가 꽉 차고 가운데 판정선에 닿는 순간 정확히 패링하면 취약률 −4%. 일반 방어는 피해 없이 적을 막습니다.</p><p>범위 밖 입력은 취약률 +4%. 피격 피해는 적마다 다릅니다. 100%를 넘으면 종료됩니다. 여러 적이 접근해도 판정선에는 순서대로 도착합니다. 진행할수록 그 간격이 짧아집니다.</p><p>스킬은 시작 전 선택합니다. 백신: Space·아이콘·라인 방향 스와이프. 프록시: Shift + 방향키/WASD·해당 라인 스와이프, 또는 준비된 아이콘을 누른 뒤 방향을 터치하세요. 프록시 처치는 충전하지 않습니다.</p><ul class="bestiary"><li><b>바이러스 / DDoS</b> — 피격 +14% / +24%.</li><li><b>트로이 · 8회</b> — 숙주 안에 숨어 있다가 다른 라인으로 튕겨 나옵니다. 놓친 숙주에서는 코어를 한 번 더 공격합니다.</li><li><b>웜 · 15회</b> — 같은 라인 처치로 카운트가 줄어듭니다. 0이면 돌진. 정밀 패링 시 −20%.</li><li><b>랜섬웨어 · 25회</b> — 빠른 접근. 피격 +8%, 해당 방향 방어 1.2초 잠금.</li></ul></details>
 <p id="share-status" role="status"></p>
@@ -92,7 +92,7 @@ const TYPES={
   ransom:{color:'#d5b1e8',damage:8,travel:1250,unlock:25},
   echo:{color:'#e4ca93',damage:8,travel:700,unlock:8}
 };
-const SKILLS={vaccine:{name:'백신',cost:8,heal:32},proxy:{name:'프록시',cost:6,duration:5000}};
+const SKILLS={vaccine:{name:'백신',cost:20,heal:32},proxy:{name:'프록시',cost:16,duration:5000}};
 let selectedSkill='vaccine',charge=0,proxyArmed=false;
 let arrivalSlots=[],nextWorm=Infinity,lockedUntil={},proxyUntil={},pointers=new Map();
 let best = 0;
@@ -102,15 +102,17 @@ let nextSpawn = Infinity, lastInput = {}, messageUntil = 0, coreFlashUntil = 0, 
 let previousDirection = null, poseUntil = 0, flashUntil = 0, damagedUntil = 0;
 let shake = {at:0,until:0,power:0};
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-const TRAVEL_TIME = 2200, MIN_ARRIVAL_GAP = GUARD_WINDOW*2+120;
+const TRAVEL_TIME = 2200, MIN_ARRIVAL_GAP = 520;
 const ROTATION = {up:0,right:90,down:180,left:270};
 const random = (min,max) => min + Math.random() * (max-min);
 // Reserve absolute arrival slots for regular attacks, Trojan rebounds and worm charges.
 // Slots remain reserved after a kill, preventing new attacks from collapsing the rhythm.
 function pace() {
-  const progress = Math.min(1,clock/90000);
-  return {gap:1550-(1550-MIN_ARRIVAL_GAP)*progress,travel:TRAVEL_TIME};
+  const seconds=Math.max(0,clock)/1000;
+  const speed=Math.min(2.6,1+seconds/90);
+  return {gap:Math.max(MIN_ARRIVAL_GAP,1450*Math.pow(.985,seconds)),speed,travel:TRAVEL_TIME/speed};
 }
+function scaledTravel(kind) { return TYPES[kind].travel/pace().speed; }
 function reserveArrival(earliest) {
   arrivalSlots=arrivalSlots.filter(t=>t>=clock-MIN_ARRIVAL_GAP);
   let time=earliest;
@@ -130,13 +132,13 @@ function chooseKind() {
 function scheduleRegular() {
   const dirs=availableDirections(previousDirection);
   if(!dirs.length){nextSpawn=clock+200;return;}
-  const dir=dirs[Math.floor(Math.random()*dirs.length)],kind=chooseKind(),travel=TYPES[kind].travel;
+  const dir=dirs[Math.floor(Math.random()*dirs.length)],kind=chooseKind(),travel=scaledTravel(kind);
   const arrival=reserveArrival(clock+travel);
   spawnEnemy(dir,arrival-travel,travel,kind,{arrival,trojan:score>=8&&Math.random()<.13});
-  previousDirection=dir;
+  previousDirection=dir;updateGuardZone();
   nextSpawn=Math.max(clock+pace().gap,arrival-travel+pace().gap)+random(0,120);
 }
-function updateGuardZone(travel=TRAVEL_TIME) {
+function updateGuardZone(travel=scaledTravel('virus')) {
   const range = (START_RADIUS-TARGET_RADIUS)*GUARD_WINDOW/travel;
   $('guard-band').setAttribute('stroke-width',range*2);
   $('guard-outer').setAttribute('r',TARGET_RADIUS+range);
@@ -268,23 +270,23 @@ function releaseTrojan(host,defeated) {
   host.trojan=false;
   glitchAt(host.x,host.y,25,'reveal');
   if(!defeated) {
-    spawnEnemy(host.dir,clock,700,'echo',{state:'echo',startRadius:IMPACT_RADIUS});
+    spawnEnemy(host.dir,clock,scaledTravel('echo'),'echo',{state:'echo',startRadius:IMPACT_RADIUS});
     showMessage('트로이 / 추가 침투','var(--pink)');return;
   }
   const dirs=availableDirections(host.dir);if(!dirs.length)return;
-  const dir=dirs[Math.floor(Math.random()*dirs.length)],hopEnd=clock+400,travel=TYPES.trojan.travel;
+  const dir=dirs[Math.floor(Math.random()*dirs.length)],hopEnd=clock+400,travel=scaledTravel('trojan');
   const arrival=reserveArrival(hopEnd+travel);
   spawnEnemy(dir,arrival-travel,travel,'trojan',{startRadius:160,arrival,hop:{at:clock,until:hopEnd,x:host.x,y:host.y}});
   showMessage('트로이 / 다른 경로로 탈출','#e4ca93');
 }
 function spawnWorm(dir,remaining=2+Math.floor(Math.random()*2),options={}) {
   if(enemies.some(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir))return null;
-  return spawnEnemy(dir,clock,900,'worm',{state:'dormant',startRadius:157,remaining,trojan:score>=8&&Math.random()<.13,...options});
+  return spawnEnemy(dir,clock,scaledTravel('worm'),'worm',{state:'dormant',startRadius:157,remaining,trojan:score>=8&&Math.random()<.13,...options});
 }
 function tickWorms(dir) {
   for(const worm of enemies.filter(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir)) {
     worm.remaining--;worm.count.textContent=worm.remaining;
-    if(worm.remaining<=0){worm.state='moving';worm.arrival=reserveArrival(clock+1100);worm.at=worm.arrival-worm.travel;worm.hop={at:clock,until:worm.at,x:worm.x,y:worm.y};glitchAt(worm.x,worm.y,25,'reveal');showMessage('웜 / 돌진 대기','#9ccbe1');}
+    if(worm.remaining<=0){worm.state='moving';worm.travel=scaledTravel('worm');worm.arrival=reserveArrival(clock+200+worm.travel);worm.at=worm.arrival-worm.travel;worm.hop={at:clock,until:worm.at,x:worm.x,y:worm.y};glitchAt(worm.x,worm.y,25,'reveal');showMessage('웜 / 돌진 대기','#9ccbe1');}
   }
 }
 function dealDamage(amount,text,coreHit=true) {
@@ -468,7 +470,7 @@ function updateLaneStates() {
     const incoming=enemies.filter(e=>e.dir===dir&&e.state==='moving'&&e.arrival>=clock-GUARD_WINDOW).sort((a,b)=>a.arrival-b.arrival)[0];
     const gate=group.querySelector('[data-gate]');
     if(incoming){
-      const radiusAt=offset=>{const t=1+offset/incoming.travel;return incoming.startRadius-(incoming.startRadius-TARGET_RADIUS)*(incoming.kind==='worm'?t*t:t)};
+      const radiusAt=offset=>{const t=1+offset/incoming.travel;return Math.max(IMPACT_RADIUS,Math.min(incoming.startRadius,incoming.startRadius-(incoming.startRadius-TARGET_RADIUS)*(incoming.kind==='worm'?Math.max(0,t)**2:t)))};
       const outer=240-radiusAt(-GUARD_WINDOW),inner=240-radiusAt(GUARD_WINDOW);
       gate.setAttribute('d',`M222 ${outer}H230 M250 ${outer}H258 M222 ${inner}H230 M250 ${inner}H258`);
       gate.setAttribute('visibility','visible');
@@ -488,7 +490,7 @@ function step(delta) {
   if(score>=15&&clock>=nextWorm){
     const dirs=availableDirections().filter(dir=>!enemies.some(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir));
     if(dirs.length&&enemies.filter(e=>e.kind==='worm'&&e.state==='dormant').length<2)spawnWorm(dirs[Math.floor(Math.random()*dirs.length)]);
-    nextWorm=clock+random(10000,15000);
+    nextWorm=clock+random(10000,15000)/pace().speed;
   }
   if(clock>=recoveryUntil)$('vulnerability-fill').dataset.recovering='false';
   for(const enemy of [...enemies]) {
