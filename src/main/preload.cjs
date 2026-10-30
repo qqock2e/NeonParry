@@ -17,7 +17,7 @@ contextBridge.exposeInMainWorld('neonDesktop', Object.freeze({
   },
   copyScore: text => {
     if (typeof text !== 'string' || text.length > 200 ||
-        !/^Neon Parry · (?:Best: \d+ eliminations!|최고 \d+회 방어!)$/.test(text)) {
+        !/^Neon Parry · (?:Best: \d+ (?:eliminations|bosses)!|최고 \d+회 (?:방어|보스 처치)!)$/.test(text)) {
       return Promise.reject(new TypeError('Invalid score text.'));
     }
     return ipcRenderer.invoke('desktop:copy-score', text);

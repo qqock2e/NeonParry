@@ -470,3 +470,94 @@ test('vaccine holds for 300ms, accelerates monotonically, and is independent of 
   b.run('for(let i=0;i<48;i++)step(25)');assert.equal(b.run('clock'),a.run('clock'));
   a.run('score=100;maybeQueueBoss();step(25)');assert.equal(a.run('clock'),325);
 });
+
+test('rush allows only Vaccine/Decoy, spawns no regular enemies, and grants exactly one skill per rest',()=>{
+  const game=createHarness();launch(game,{mode:'rush',skill:'proxy'});
+  assert.equal(game.run('selectedSkill'),'vaccine');assert.equal(game.run('bossFight.phase'),'rest');assert.equal(game.run('charge'),20);
+  game.run('vulnerability=70;activateSkill();');assert.equal(game.run('vulnerability'),41);assert.equal(game.run('charge'),0);assert.equal(game.run('activateSkill()'),false);
+  game.run('pauseGame();step(5000);');assert.equal(game.run('fxClock'),0);
+  game.run('resumeGame();step(5000);');assert.equal(game.run('bossFight.phase'),'warning');assert.equal(game.run('enemies.length'),0);assert.equal(game.run('vaccineSlowAt'),-Infinity);
+  assert.equal(game.run('activateSkill()'),false);
+  game.run('gameOver();selectSkill("proxy");replayRun();');assert.equal(game.run('selectedSkill'),'vaccine');
+});
+
+test('rush victories heal by new score, scale gently, persist separately and failed Domain retries without points',()=>{
+  const game=createHarness();launch(game,{mode:'rush',skill:'decoy'});
+  game.run('activateSkill();step(5000);');assert.equal(game.run('decoyCapacity'),50);
+  const first=game.run('bossFight.kind');
+  game.run('vulnerability=80;bossFight.lastContact={x:240,y:136,dir:"up"};finishBoss();');assert.equal(game.run('score'),1);assert.equal(game.run('vulnerability'),79);
+  game.run('step(1200);');assert.equal(game.run('bossFight.phase'),'rest');assert.equal(game.run('charge'),24);
+  game.run('step(5000);');assert.notEqual(game.run('bossFight.kind'),first,'shuffle bag covers every boss before cycling');
+  game.run("bossFight.kind='domain';bossFight.remaining=1;decoyCapacity=0;failDomain();step(1000);");assert.equal(game.run('score'),1);assert.equal(game.run('bossFight.phase'),'rest');
+  game.run('step(5000)');assert.equal(game.run('bossFight.kind'),'domain');
+  game.run('score=10;rememberBest();');assert.equal(game.run('currentDifficulty().bossSpeed'),1.1);assert.equal(game.run('currentDifficulty().damage'),1.15);
+  assert.equal(game.run('rushRecords.easy'),10);assert.equal(game.run('endlessRecords.easy||0'),0);
+  const reloaded=createHarness(game.snapshotStorage());assert.equal(reloaded.run('rushRecords.easy'),10);
+});
+
+test('20 real rush boss encounters complete with intermissions and unlock Boss Conqueror',()=>{
+  const game=createHarness();launch(game,{mode:'rush'});
+  const seen=new Set();
+  for(let i=0;i<20;i++){
+    game.run('step(5000);step(1750);');seen.add(game.run('bossFight.kind'));
+    game.run(`(()=>{let guard=0;while(bossFight.phase!=='finisher'&&mode==='running'&&guard++<200){
+      if(bossFight.phase==='active'){
+        const attack=[...bossFight.attacks].sort((a,b)=>a.arrival-b.arrival)[0];
+        const elapsed=Math.max(0,attack.arrival-clock);clock+=elapsed;fxClock+=elapsed;bossParry(attack.dir);
+      }else if(bossFight.phase==='reaction'){
+        const sequence=[...bossFight.sequence];for(const dir of sequence){fxClock+=100;bossParry(dir);}
+      }else if(['telegraph','rebound'].includes(bossFight.phase)){step(Math.max(0,bossFight.phaseUntil-fxClock));}
+      else throw Error('Unexpected boss phase '+bossFight.phase);
+    }if(guard>=200)throw Error('Encounter stuck');})();`);
+    assert.equal(game.run('mode'),'running');assert.equal(game.run('bossFight.phase'),'finisher');assert.equal(game.run('score'),i+1);
+    game.run('step(1200)');assert.equal(game.run('bossFight.phase'),'rest');assert.equal(game.run('enemies.length'),0);
+  }
+  assert.equal(seen.size,2);assert.equal(game.run('achievements["rush-20"]'),true);
+});
+
+test('stage-5 achievements track actual skill activations and non-perfect kills for every difficulty',()=>{
+  for(const difficulty of difficulties){
+    const clean=createHarness();launch(clean,{mode:'stage',stage:5,difficulty});
+    clean.run('score=100;activeRun.bossDefeated=true;completeStage();');
+    for(const prefix of ['clear','arrows','perfect'])assert.equal(clean.run(`achievements['${prefix}:${difficulty}']`),true);
+  }
+  const skilled=createHarness();launch(skilled,{mode:'stage',stage:5,skill:'proxy'});
+  skilled.run("charge=16;spawnEnemy('up');activateSkill('up');score=100;activeRun.bossDefeated=true;completeStage();");
+  assert.equal(skilled.run('achievements["clear:easy"]'),true);assert.equal(skilled.run('!!achievements["arrows:easy"]'),false);assert.equal(skilled.run('!!achievements["perfect:easy"]'),false);
+  const guarded=createHarness();launch(guarded,{mode:'stage',stage:5});
+  guarded.run("spawnEnemy('up',0,1000,'virus');clock=1200;parry('up');score=100;activeRun.bossDefeated=true;completeStage();");
+  assert.equal(guarded.run('achievements["arrows:easy"]'),true);assert.equal(guarded.run('!!achievements["perfect:easy"]'),false);
+  const reload=createHarness(guarded.snapshotStorage());assert.equal(reload.run('achievements["arrows:easy"]'),true);
+});
+
+test('non-perfect boss parries disqualify Only Perfect and retries reset eligibility',()=>{
+  const game=createHarness();launch(game,{mode:'stage',stage:5});
+  game.run("score=100;maybeQueueBoss();startBossWarning();bossFight.kind='domain';bossFight.remaining=1;startDomainRound('up');clock=bossFight.attacks[0].arrival+150;fxClock=clock;bossParry('up');");
+  assert.equal(game.run('activeRun.stats.nonPerfectKills'),1);
+  game.run('gameOver();replayRun();');assert.equal(game.run('activeRun.stats.nonPerfectKills'),0);assert.equal(game.run('activeRun.stats.skillsUsed'),0);
+});
+
+test('first encounter and 1000-point titles are restricted to Endless and difficulty',()=>{
+  const game=createHarness();launch(game,{difficulty:'hard'});
+  game.run('score=100;maybeQueueBoss();startBossWarning();finishBoss();');assert.equal(game.run('achievements["first-meeting"]'),true);
+  game.run('score=1000;rememberBest();');assert.equal(game.run('achievements["psycho:hard"]'),true);assert.equal(game.run('!!achievements["psycho:easy"]'),false);
+  const rush=createHarness();launch(rush,{mode:'rush'});rush.run('score=1000;rememberBest();');assert.equal(rush.run('!!achievements["psycho:easy"]'),false);
+});
+
+test('guide hides unseen names and descriptions; future spawns and hidden Trojan hosts do not discover early',()=>{
+  const game=createHarness();game.run("guideTab='enemies';renderGuide();");
+  assert.equal(game.run("document.querySelectorAll('.guide-card[data-locked=\"true\"]').length"),6);
+  assert.ok(!game.element('guide-panel').textContent.includes('Ransomware'));
+  launch(game);game.run("spawnEnemy('up',1000,2200,'ransom',{trojan:true});");assert.equal(game.run('!!discoveries["enemy:ransom"]'),false);assert.equal(game.run('!!discoveries["enemy:trojan"]'),false);
+  game.run('clock=1000;renderEnemy(enemies[0]);');assert.equal(game.run('discoveries["enemy:ransom"]'),true);assert.equal(game.run('!!discoveries["enemy:trojan"]'),false);
+  game.run('releaseTrojan(contactEnemy(enemies[0]),true);');assert.equal(game.run('discoveries["enemy:trojan"]'),true);
+  const reload=createHarness(game.snapshotStorage());reload.run("guideTab='enemies';renderGuide();");assert.ok(reload.element('guide-panel').textContent.includes('Ransomware'));
+  reload.run("guideTab='bosses';renderGuide();");assert.equal(reload.run("document.querySelectorAll('.guide-card[data-locked=\"true\"]').length"),2);
+});
+
+test('legacy records migrate only provable titles, and guide discovery respects blocked storage',()=>{
+  const game=createHarness({'neon-parry-stage-records':JSON.stringify({'extreme:5':{cleared:true,bestScore:101}}),'neon-parry-endless-bests':JSON.stringify({normal:1000})});
+  assert.equal(game.run('achievements["clear:extreme"]'),true);assert.equal(game.run('achievements["psycho:normal"]'),true);assert.equal(game.run('!!achievements["perfect:extreme"]'),false);assert.equal(game.run('!!achievements["first-meeting"]'),false);
+  game.run("localStorage.setItem=()=>{throw Error('blocked')};discover('enemy','worm');guideTab='enemies';renderGuide();");
+  assert.equal(game.run('discoveries["enemy:worm"]'),true);assert.ok(game.element('guide-panel').textContent.includes('Computer Worm'));
+});

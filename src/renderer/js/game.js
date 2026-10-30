@@ -16,19 +16,26 @@ function readProgress(key){
 }
 const endlessRecords=readProgress('neon-parry-endless-bests');
 const stageRecords=readProgress('neon-parry-stage-records');
+const rushRecords=readProgress('neon-parry-rush-bests');
+const achievements=readProgress('neon-parry-achievements');
+const discoveries=readProgress('neon-parry-discoveries');
+let rushBossBag=[],rushRetryKind=null;
 function difficultyName(id){const names=RUN_DIFFICULTIES[id]?.name||RUN_DIFFICULTIES.easy.name;return t(names[0],names[1]);}
 function stageTarget(stage){return STAGE_TARGETS[Math.max(0,Math.min(4,Math.floor(Number(stage)||1)-1))];}
-function currentDifficulty(){return RUN_DIFFICULTIES[activeRun?.difficulty||runSelection.difficulty]||RUN_DIFFICULTIES.easy;}
+function isRush(){return activeRun?.mode==='rush';}
+function rushRest(){return isRush()&&bossFight?.phase==='rest';}
+function skillsLocked(){return !!bossFight&&!rushRest();}
+function currentDifficulty(){const base=RUN_DIFFICULTIES[activeRun?.difficulty||runSelection.difficulty]||RUN_DIFFICULTIES.easy;return isRush()?{...base,bossSpeed:base.bossSpeed*(1+score*.01),damage:base.damage*(1+score*.015)}:base;}
 function stagePace(){return activeRun?.mode==='stage'?1+(activeRun.stage-1)*.08:1;}
 function minimumArrivalGap(){return currentDifficulty().minGap/stagePace();}
 function fragmentWindow(){return 160/currentDifficulty().bossSpeed;}
 function getRunBest(){
   const run=activeRun||runSelection;
-  const value=run.mode==='stage'?stageRecords[`${run.difficulty}:${run.stage}`]?.bestScore:endlessRecords[run.difficulty];
+  const value=run.mode==='rush'?rushRecords[run.difficulty]:run.mode==='stage'?stageRecords[`${run.difficulty}:${run.stage}`]?.bestScore:endlessRecords[run.difficulty];
   return Math.max(0,Number(value)||0);
 }
 function saveProgress(){
-  try{localStorage.setItem('neon-parry-endless-bests',JSON.stringify(endlessRecords));localStorage.setItem('neon-parry-stage-records',JSON.stringify(stageRecords));}catch{}
+  try{localStorage.setItem('neon-parry-rush-bests',JSON.stringify(rushRecords));localStorage.setItem('neon-parry-endless-bests',JSON.stringify(endlessRecords));localStorage.setItem('neon-parry-stage-records',JSON.stringify(stageRecords));}catch{}
 }
 
 let language='en';
@@ -194,6 +201,8 @@ function svg(tag, attrs) {
 }
 function updateHUD() {
   $('score').textContent = score;
+  $('score-label').textContent=isRush()?t('Bosses','보스 처치'):t('Eliminations','방어');
+  document.querySelector('.legend').hidden=isRush();
   $('best').textContent = best;
   $('vulnerability-value').textContent = vulnerability + '%';
   $('vulnerability-fill').style.width = Math.min(100,vulnerability) + '%';
@@ -206,9 +215,10 @@ function updateHUD() {
   for(const item of document.querySelectorAll('[data-unlock]'))item.hidden=score<Number(item.dataset.unlock);
 }
 function rememberBest() {
+  if(typeof checkScoreAchievements==='function')checkScoreAchievements();
   if (score <= best) return;
   best = score;
-  if(activeRun?.mode==='stage'){
+  if(isRush()){rushRecords[activeRun.difficulty]=best;}else if(activeRun?.mode==='stage'){
     const key=`${activeRun.difficulty}:${activeRun.stage}`;
     stageRecords[key]={...stageRecords[key],bestScore:best};
   }else{
@@ -228,12 +238,14 @@ function startGame() {
   const difficulty=currentDifficulty();
   GUARD_WINDOW=difficulty.guard;PERFECT_WINDOW=difficulty.perfect;COOLDOWN=difficulty.cooldown;
   best=getRunBest();activeRun.bossDefeated=false;
+  $('achievement-toast').hidden=true;if(typeof achievementUntil!=='undefined')achievementUntil=0;
+  $('game-shell').dataset.runMode=activeRun.mode;
   mode = 'running'; score = 0; vulnerability = 0; clock = 0; fxClock=0;bossFight=null;nextBossAt=100;cameraZoom=1;lastFrame = null;
   $('boss-entities').replaceChildren();$('camera').removeAttribute('transform');updateBossHUD();
   enemies = []; effects = []; nextSpawn = 1200/difficulty.speed; lastInput = {}; messageUntil = 0; coreFlashUntil = 0; recoveryUntil = 0;
   $('enemies').replaceChildren(); $('effects').replaceChildren(); $('foreground-fx').replaceChildren(); $('phishing-links').replaceChildren();
   previousDirection=null; poseUntil=0; flashUntil=0; damagedUntil=0;
-  charge=0; proxyArmed=false; decoyCapacity=0; vaccineSlowAt=-Infinity;retrySkill=null;arrivalSlots=[]; nextWorm=Infinity; lockedUntil={}; proxyUntil={}; pointers.clear();
+  charge=0; proxyArmed=false; decoyCapacity=0; vaccineSlowAt=-Infinity;retrySkill=null;rushBossBag=[];rushRetryKind=null;arrivalSlots=[]; nextWorm=Infinity; lockedUntil={}; proxyUntil={}; pointers.clear();
   $('skill-choices').hidden=true; $('arena').dataset.armed='false';
   shake={at:0,until:0,power:0}; $('world').removeAttribute('transform');
   $('vulnerability').dataset.damaged='false'; resetPose();
@@ -243,6 +255,7 @@ function startGame() {
   $('overlay').hidden = true;
   $('message').textContent = ''; $('share-status').textContent = '';
   $('action').textContent = t('Pause','일시정지'); updateHUD(); updateLaneStates();
+  if(isRush())startRushRest();
   playSound('start');frame = requestAnimationFrame(loop);
 }
 function pauseGame() {
@@ -272,9 +285,9 @@ function gameOver() {
 function launchRun(){
   const difficulty=Object.hasOwn(RUN_DIFFICULTIES,runSelection.difficulty)?runSelection.difficulty:'easy';
   const stage=Math.max(1,Math.min(5,Math.floor(Number(runSelection.stage)||1)));
-  const skill=Object.hasOwn(SKILLS,runSelection.skill)?runSelection.skill:'vaccine';
-  runSelection={mode:runSelection.mode==='stage'?'stage':'endless',difficulty,stage,skill};
-  activeRun={...runSelection,target:runSelection.mode==='stage'?stageTarget(stage):Infinity,bossRequired:runSelection.mode==='stage'&&stage===5,bossDefeated:false};
+  const skill=Object.hasOwn(SKILLS,runSelection.skill)&&!(runSelection.mode==='rush'&&runSelection.skill==='proxy')?runSelection.skill:'vaccine';
+  runSelection={mode:['stage','rush'].includes(runSelection.mode)?runSelection.mode:'endless',difficulty,stage,skill};
+  activeRun={...runSelection,target:runSelection.mode==='stage'?stageTarget(stage):Infinity,bossRequired:runSelection.mode==='stage'&&stage===5,bossDefeated:false,stats:{skillsUsed:0,nonPerfectKills:0}};
   selectedSkill=skill;
   for(const button of document.querySelectorAll('[data-skill]'))button.setAttribute('aria-pressed',String(button.dataset.skill===selectedSkill));
   if($('help-dialog').open)$('help-dialog').close();
@@ -303,7 +316,7 @@ function continueRun(){
 }
 function updateRunHUD(){
   const run=activeRun||runSelection,isStage=run.mode==='stage';
-  if($('run-label'))$('run-label').textContent=`${difficultyName(run.difficulty)} · ${isStage?t(`Stage ${run.stage} / 5`,`스테이지 ${run.stage} / 5`):t('Endless','무한 모드')}`;
+  if($('run-label'))$('run-label').textContent=`${difficultyName(run.difficulty)} · ${run.mode==='rush'?t('Boss rush','보스 러쉬'):isStage?t(`Stage ${run.stage} / 5`,`스테이지 ${run.stage} / 5`):t('Endless','무한 모드')}`;
   const progress=$('stage-progress');
   if(progress){
     progress.hidden=!isStage;
@@ -336,6 +349,7 @@ function completeStage(){
   rememberBest();
   stageRecords[key]={...stageRecords[key],cleared:true,bestScore:Math.max(Number(previous.bestScore)||0,score),bestVulnerability:Math.min(Number.isFinite(previous.bestVulnerability)?previous.bestVulnerability:Infinity,vulnerability)};
   saveProgress();
+  if(typeof checkStageAchievements==='function')checkStageAchievements();
   $('overlay-symbol').textContent='✓';$('overlay-title').textContent=t(`Stage ${activeRun.stage} cleared`,`스테이지 ${activeRun.stage} 클리어`);$('overlay-copy').textContent=stageResultCopy();
   $('overlay').hidden=false;$('skill-choices').hidden=false;$('action').textContent=t('Retry stage','스테이지 재도전');
   updateHUD();updateLaneStates();
@@ -387,6 +401,7 @@ function enemyPosition(enemy) {
 }
 function renderEnemy(enemy) {
   const visible=enemy.state==='dormant'||enemy.state==='echo'||enemy.hop||enemy.push||clock>=enemy.at;
+  if(visible&&typeof discover==='function')discover('enemy',enemy.kind==='echo'?'trojan':enemy.kind);
   enemy.node.setAttribute('visibility',visible?'visible':'hidden');
   const position=enemyPosition(enemy);enemy.radius=position.radius;enemy.x=position.x;enemy.y=position.y;
   enemy.node.setAttribute('transform',`translate(${position.x} ${position.y})`);
@@ -574,6 +589,7 @@ function updateEffects() {
 // Boss state and registry are separate from ordinary enemies, allowing new patterns
 // without letting normal cleanup/proxy logic accidentally delete an encounter.
 function maybeQueueBoss(){
+  if(isRush())return;
   if(activeRun?.mode==='stage'&&!activeRun.bossRequired)return;
   if(bossFight||score<nextBossAt||mode!=='running')return;
   const milestone=nextBossAt;nextBossAt+=100;
@@ -600,6 +616,11 @@ function updateBossHUD(){
   $('boss-hud').hidden=!fight;$('boss-banner').hidden=true;$('reaction-meter').hidden=!fight||fight.phase!=='reaction';
   $('arena').dataset.bossPhase=fight?.phase||'';
   if(!fight)return;
+  if(fight.phase==='rest'){
+    $('boss-banner').hidden=false;$('boss-banner').dataset.result='';$('boss-name').textContent=t('Boss rush / recovery','보스 러쉬 / 회복');
+    $('boss-banner-tag').textContent='/// RECOVERY';$('boss-banner-title').textContent=t('Rest','휴식');
+    $('boss-banner-copy').textContent=t('5 seconds · use your skill','5초 휴식 · 스킬을 사용하세요');$('boss-pips').replaceChildren();return;
+  }
   const definition=fight.kind?BOSS_TYPES[fight.kind]:null;
   $('boss-name').textContent=t(`${fight.milestone} / ${definition?.name||'Clearing threats'}`,`${fight.milestone} / ${definition?.name||'위협 정리'}`);
   $('boss-pips').replaceChildren();$('boss-pips').style.setProperty('--boss-color',definition?.color||'#e4ca93');
@@ -613,9 +634,16 @@ function updateBossHUD(){
   }
 }
 function startBossWarning(){
-  const choices=Object.keys(BOSS_TYPES);bossFight.kind=choices[Math.floor(Math.random()*choices.length)];
+  const choices=Object.keys(BOSS_TYPES);
+  if(isRush()){
+    if(rushRetryKind){bossFight.kind=rushRetryKind;rushRetryKind=null;}else{
+      if(!rushBossBag.length){rushBossBag=[...choices];for(let i=rushBossBag.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[rushBossBag[i],rushBossBag[j]]=[rushBossBag[j],rushBossBag[i]];}}
+      bossFight.kind=rushBossBag.shift();
+    }
+  }else bossFight.kind=choices[Math.floor(Math.random()*choices.length)];
+  if(typeof discover==='function')discover('boss',bossFight.kind);
   bossFight.remaining=BOSS_TYPES[bossFight.kind].attempts;bossFight.total=bossFight.remaining;
-  lockedUntil={};proxyUntil={};arrivalSlots=[];pointers.clear();proxyArmed=false;$('arena').dataset.armed='false';
+  vaccineSlowAt=-Infinity;lockedUntil={};proxyUntil={};arrivalSlots=[];pointers.clear();proxyArmed=false;$('arena').dataset.armed='false';
   bossPhase('warning',1750);playSound('boss-warning');updateLaneStates();updateSkillHUD();
 }
 function randomBossDirection(exclude=null){const dirs=Object.keys(DIRECTIONS).filter(dir=>dir!==exclude);return dirs[Math.floor(Math.random()*dirs.length)];}
@@ -713,6 +741,7 @@ function bossParry(dir,inputClock=clock){
   const candidates=fight.attacks.filter(a=>a.dir===dir&&Math.abs(inputClock-a.arrival)<=(a.depth?fragmentWindow():GUARD_WINDOW)).sort((a,b)=>Math.abs(inputClock-a.arrival)-Math.abs(inputClock-b.arrival));
   const attack=candidates[0];
   if(!attack){dealDamage(MISINPUT_DAMAGE,t('Empty parry','헛방어'),false);addEffect(dir,'miss');return;}
+  if(activeRun?.stats&&Math.abs(inputClock-attack.arrival)>PERFECT_WINDOW)activeRun.stats.nonPerfectKills++;
   renderBossAttack(attack);attack.node.remove();fight.attacks.splice(fight.attacks.indexOf(attack),1);fight.lastContact=attack;bossHitFeedback(attack,false);
   BOSS_TYPES[fight.kind].onHit(attack);
 }
@@ -757,14 +786,22 @@ function missDestroy(attack){
 function finishBoss(){
   const fight=bossFight,contact=fight.lastContact||{x:240,y:136,dir:'up'};clearBossActors();bossPhase('finisher',1150);playSound('boss-finish');shakeCamera(5);
   if(activeRun?.mode==='stage')activeRun.bossDefeated=true;
-  strikePose(contact.dir,true);score++;rememberBest();updateHUD();
+  strikePose(contact.dir,true);score++;
+  if(isRush()){vulnerability=Math.max(0,Math.round((vulnerability-score)*10)/10);recoveryUntil=clock+700;$('vulnerability-fill').dataset.recovering='true';}
+  if(activeRun?.mode==='endless'&&fight.milestone===100&&typeof awardAchievement==='function')awardAchievement('first-meeting');
+  rememberBest();updateHUD();
   const group=svg('g',{transform:`translate(${contact.x} ${contact.y})`}),halves=[];
   for(let i=0;i<2;i++){const half=svg('path',{d:i?'M0 -35L32 -18V18L0 35Z':'M0 -35L-32 -18V18L0 35Z',fill:BOSS_TYPES[fight.kind].color,stroke:'#f1ffe9','stroke-width':1.5});group.append(half);halves.push(half);}
   const slash=svg('path',{d:'M-75 60L80 -65 M-40 74L65 -45',stroke:'#f4ffe9','stroke-width':4,fill:'none'});group.append(slash);
   const wave=svg('circle',{cx:0,cy:0,r:24,stroke:'#c5edb2','stroke-width':1,fill:'none'});group.append(wave);
   addTimedEffect(group,1000,t=>{group.setAttribute('opacity',1-t);if(!reducedMotion.matches){halves.forEach((part,i)=>part.setAttribute('transform',`translate(${(i?1:-1)*t*90} ${-t*22}) rotate(${(i?-1:1)*t*350}) skewX(${(i?1:-1)*Math.sin(t*Math.PI)*25})`));wave.setAttribute('r',24+t*145);}slash.setAttribute('opacity',Math.max(0,1-t*2.5));},true);
 }
+function startRushRest(){
+  clearBossActors();bossFight={phase:'rest',phaseAt:fxClock,phaseUntil:fxClock+5000,milestone:score+1,kind:null,attacks:[],mains:new Map(),lastPress:{}};
+  nextSpawn=Infinity;nextWorm=Infinity;charge=SKILLS[selectedSkill].cost;proxyUntil={};lockedUntil={};arrivalSlots=[];updateHUD();
+}
 function resumeRegularAfterBoss(){
+  if(isRush()){if(bossFight?.phase==='failed')rushRetryKind=bossFight.kind;startRushRest();return;}
   clearBossActors();bossFight=null;arrivalSlots=[];nextSpawn=clock+1300;nextWorm=score>=15?clock+5000:Infinity;lastInput={};for(const dir of Object.keys(DIRECTIONS))lastInput[dir]=-Infinity;
   if(activeRun?.mode==='stage'&&activeRun.bossRequired&&score>=activeRun.target){
     if(checkStageCompletion())return;
@@ -777,7 +814,10 @@ function updateBoss(delta){
   if(!bossFight)maybeQueueBoss();
   const fight=bossFight;
   if(fight){
-    if(fight.phase==='draining'&&enemies.length===0)startBossWarning();
+    if(fight.phase==='rest'){
+      const seconds=Math.max(0,Math.ceil((fight.phaseUntil-fxClock)/1000));$('boss-banner-title').textContent=t(`Rest · ${seconds}`,`휴식 · ${seconds}`);
+      if(fxClock>=fight.phaseUntil)startBossWarning();
+    }else if(fight.phase==='draining'&&enemies.length===0)startBossWarning();
     else if(fight.phase==='warning'&&fxClock>=fight.phaseUntil)BOSS_TYPES[fight.kind].start();
     else if(fight.phase==='reaction'){
       const progress=Math.max(0,(fight.phaseUntil-fxClock)/fight.reactionDuration);$('reaction-fill').style.width=(100*progress)+'%';$('reaction-meter').setAttribute('aria-valuenow',Math.round(100*progress));
@@ -802,6 +842,7 @@ function parry(dir,inputClock=clock) {
   const enemy=enemies.find(e=>targetDirection(e)===dir&&e.state==='moving'&&(!e.hop||clock>=e.hop.until)&&(!e.push||clock>=e.push.until)&&(e.kind!=='phishing'||e.revealed)&&Math.abs(inputClock-e.arrival)<=GUARD_WINDOW);
   if(!enemy){dealDamage(MISINPUT_DAMAGE,t('Empty parry','헛방어'),false);addEffect(dir,'miss');return;}
   const perfect=Math.abs(inputClock-enemy.arrival)<=PERFECT_WINDOW;
+  if(!perfect&&activeRun?.stats)activeRun.stats.nonPerfectKills++;
   renderEnemy(enemy);const contact=contactEnemy(enemy);shatterEnemy(contact,perfect);playSound(perfect?'perfect':'guard');strikePose(dir,perfect);shakeCamera(perfect?2.4:1.4);removeEnemy(enemy);
   score++;charge=Math.min(SKILLS[selectedSkill].cost,charge+1);
   const healing=perfect?(enemy.kind==='worm'?20:PERFECT_RECOVERY):0;
@@ -816,18 +857,19 @@ function checkUnlocks() {
   maybeQueueBoss();
 }
 function updateSkillHUD() {
+  for(const button of document.querySelectorAll('[data-skill]'))button.hidden=isRush()&&button.dataset.skill==='proxy';
   const config=SKILLS[selectedSkill],ready=charge>=config.cost;
   $('skill-name').textContent=config.name;
   $('skill-key').textContent=selectedSkill!=='proxy'?t('Space / lane swipe','Space / 라인 스와이프'):t('Shift + direction / lane swipe','Shift + 방향 / 라인 스와이프');
-  $('skill').disabled=mode!=='running'||!ready||!!bossFight;$('skill').dataset.ready=String(ready&&!bossFight&&mode==='running');
+  $('skill').disabled=mode!=='running'||!ready||skillsLocked();$('skill').dataset.ready=String(ready&&!skillsLocked()&&mode==='running');
   $('skill').setAttribute('aria-label',config.name+t(' skill',' 스킬')+(ready?t(' ready',' 준비'):t(' charging',' 충전 중')));
   $('skill-meter').setAttribute('aria-valuemax',config.cost);$('skill-meter').setAttribute('aria-valuenow',charge);
   $('skill-fill').style.width=(100*charge/config.cost)+'%';
-  $('skill-status').textContent=(mode==='over'||mode==='cleared')?t('Choose a skill, then Retry','스킬을 고른 뒤 재도전하세요'):bossFight?t('Skills locked during boss encounter','보스전 중 스킬 잠금'):proxyArmed?t('Tap a lane to use Proxy.','사용할 방향을 터치하세요.'):ready?t('Ready','준비 완료'):t(`Eliminate to charge · ${charge}/${config.cost}`,`처치로 충전 · ${charge}/${config.cost}`);
+  $('skill-status').textContent=(mode==='over'||mode==='cleared')?t('Choose a skill, then Retry','스킬을 고른 뒤 재도전하세요'):skillsLocked()?t('Skills locked during boss encounter','보스전 중 스킬 잠금'):rushRest()&&!ready?t('Recharges at next rest','다음 휴식에 충전됩니다'):proxyArmed?t('Tap a lane to use Proxy.','사용할 방향을 터치하세요.'):ready?t('Ready','준비 완료'):t(`Eliminate to charge · ${charge}/${config.cost}`,`처치로 충전 · ${charge}/${config.cost}`);
   $('skill-glyph').setAttribute('d',selectedSkill==='decoy'?'M3 8H12L16 12H29V27H3Z M8 18H24':selectedSkill==='vaccine'?'M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22':'M3 7H21L29 16L21 25H3V7Z M9 11H19V21H9Z');
 }
 function selectSkill(skill) {
-  if(mode==='running'||mode==='paused'||!Object.hasOwn(SKILLS,skill))return;
+  if(mode==='running'||mode==='paused'||!Object.hasOwn(SKILLS,skill)||(isRush()&&skill==='proxy'&&(mode==='over'||mode==='cleared')))return;
   if(mode==='over'||mode==='cleared')retrySkill=skill;
   selectedSkill=skill;charge=0;
   for(const button of document.querySelectorAll('[data-skill]'))button.setAttribute('aria-pressed',String(button.dataset.skill===skill));
@@ -835,10 +877,11 @@ function selectSkill(skill) {
 }
 function activateSkill(dir=null) {
   if(mode!=='running')return false;
-  if(bossFight){showMessage(t('Skills locked during boss encounter','보스전 중 스킬 잠금'));return false;}
+  if(skillsLocked()){showMessage(t('Skills locked during boss encounter','보스전 중 스킬 잠금'));return false;}
   const config=SKILLS[selectedSkill];
   if(charge<config.cost){showMessage(t('Skill charging','스킬 충전 중'));return false;}
   if(selectedSkill==='proxy'&&!DIRECTIONS[dir]){proxyArmed=!proxyArmed;$('arena').dataset.armed=String(proxyArmed);updateSkillHUD();return false;}
+  if(activeRun?.stats)activeRun.stats.skillsUsed++;
   charge=0;proxyArmed=false;$('arena').dataset.armed='false';
   if(selectedSkill==='vaccine') {
     vulnerability=Math.max(0,vulnerability-config.heal);recoveryUntil=clock+800;$('vulnerability-fill').dataset.recovering='true';
@@ -852,6 +895,7 @@ function activateSkill(dir=null) {
       if(enemy.spawned)shatterEnemy(contactEnemy(enemy),false);
       if(removeEnemy(enemy)&&enemy.kind!=='echo')removed++;
     }
+    if(activeRun?.stats)activeRun.stats.nonPerfectKills+=removed;
     proxyUntil[dir]=clock+config.duration;score+=removed;rememberBest();checkUnlocks();
     addEffect(dir,'perfect');playSound('proxy');showMessage(t('Proxy / lane cleared and blocked','프록시 / 경로 정리·생성 차단'),'#9ccbe1');
   } else {
@@ -895,12 +939,13 @@ function vaccineMovementTime(elapsed){
 function step(delta) {
   if(mode!=='running')return;
   fxClock+=delta;
+  if(typeof achievementUntil!=='undefined'&&fxClock>=achievementUntil)$('achievement-toast').hidden=true;
   const elapsed=fxClock-vaccineSlowAt;
   const fieldDelta=Number.isFinite(vaccineSlowAt)?vaccineMovementTime(elapsed)-vaccineMovementTime(elapsed-delta):delta;
   clock+=bossFight?.phase==='reaction'?delta*.045:bossFight?.phase==='finisher'?delta*.12:fieldDelta;
   if(messageUntil&&clock>messageUntil){$('message').textContent='';messageUntil=0;}
-  if(!bossFight&&clock>=nextSpawn)scheduleRegular();
-  if(!bossFight&&score>=15&&clock>=nextWorm){
+  if(!isRush()&&!bossFight&&clock>=nextSpawn)scheduleRegular();
+  if(!isRush()&&!bossFight&&score>=15&&clock>=nextWorm){
     const dirs=availableDirections().filter(dir=>!enemies.some(e=>e.kind==='worm'&&e.state==='dormant'&&e.dir===dir));
     if(dirs.length&&enemies.filter(e=>e.kind==='worm'&&e.state==='dormant').length<2)spawnWorm(dirs[Math.floor(Math.random()*dirs.length)]);
     nextWorm=clock+random(10000,15000)/pace().speed;
@@ -974,7 +1019,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden) pauseGame(
 window.addEventListener('blur',pauseGame);
 $('share').addEventListener('click',async()=>{
   pauseGame();
-  const text = t(`Neon Parry · Best: ${best} eliminations!`,`Neon Parry · 최고 ${best}회 방어!`);
+  const text = isRush()?t(`Neon Parry · Best: ${best} bosses!`,`Neon Parry · 최고 ${best}회 보스 처치!`):t(`Neon Parry · Best: ${best} eliminations!`,`Neon Parry · 최고 ${best}회 방어!`);
   const shareURL=window.top===window&&/^https?:$/.test(location.protocol)?location.href:'';
   try {
     if(window.neonDesktop?.copyScore) { await window.neonDesktop.copyScore(text); $('share-status').textContent=t('Score copied.','기록을 복사했어요.'); }
@@ -987,16 +1032,13 @@ document.addEventListener('pointerdown',unlockAudio,{capture:true,passive:true})
 document.addEventListener('keydown',unlockAudio,{capture:true});
 $('sound-toggle').addEventListener('click',()=>{soundEnabled=!soundEnabled;try{localStorage.setItem('neon-parry-sound',soundEnabled?'on':'off');}catch{}updateSoundButton();if(soundEnabled){unlockAudio();playSound('start');}else silenceSound();});
 
-const HELP={
-en:`<h3>01 / Parry</h3><p>Use <kbd>↑ ← ↓ →</kbd> or <kbd>W A S D</kbd>. On touch screens, tap the incoming enemy’s lane anywhere in that quarter of the arena.</p><p>Parry when the enemy lights up between the lane’s short timing marks. A full inner gauge means it has reached the thin circular timing ring: a perfect parry reduces vulnerability by <b>4 percentage points</b>. Early or late parries inside the window still block the attack.</p><p>An empty parry adds <b>4 points</b>. Enemies that reach the core deal damage. The game ends <b>above 100%</b> vulnerability. Normal attacks arrive in sequence; boss fragments can follow much faster. Speed and frequency increase over time.</p><h3>02 / Skills</h3><p>Choose a skill before starting or retrying. Eliminations charge the meter; use it when full. Swipe along a lane toward or away from the core, starting in that lane. Sideways swipes do not activate skills.</p><ul><li><b>Vaccine · 20 charges:</b> heal 29 points and stop the whole field for 0.3 seconds, then accelerate back to normal over 0.9 seconds (1.2 seconds total). No knockback. Use Space, the skill button, or a lane swipe.</li><li><b>Proxy · 16 charges:</b> clear one lane and block spawns there for 6 seconds. Dormant worms and either side of phishing are also cleared. Use Shift + arrow/WASD, swipe that lane, or tap the skill button then a lane. Proxy eliminations give no charge. All skills are locked from boss entry until the encounter ends. Entry clears Vaccine slow and Proxy barriers; an existing Decoy shield remains.</li><li><b>Decoy · 24 charges:</b> create a 50-point shield. Use Space, the skill button, or a lane swipe. The hit that breaks it never spills over to the core. Reusing resets it to 50; shields do not stack. Absorbing ransomware also heals the core by 10 points and prevents its lock.</li></ul><h3>03 / Threats</h3><ul><li><b>Virus / DDoS (from 3 eliminations):</b> 14 / 24 points of damage.</li><li><b>Trojan (8):</b> hidden on another enemy. Parry its host and it escapes to another lane: block it again or take 34 damage. A missed host instead triggers an extra 8-point hit.</li><li><b>Worm (15):</b> waits mid-lane with a counter. Each elimination in its lane lowers it; at zero it charges. Damage: 30. A perfect parry heals 20 points.</li><li><b>Ransomware (25):</b> fast; 8 damage and a 1.2-second lane lock.</li><li><b>Phishing (40):</b> the first enemy is a decoy. When it enters the parry window, the real target appears faintly on the opposite lane, linked to the decoy. Parry that target; the decoy cannot be destroyed. A miss deals 40 damage.</li></ul><h3>04 / Bosses</h3><p>At 100, 200, 300… eliminations, spawns stop until all remaining threats are cleared. A warning introduces one randomly selected boss; repeats are possible.</p><ul><li><b>Fake Domain:</b> parry the fake, then follow the numbered targets across the other three lanes during slow motion. Rounds 1–4 require 1 → 2 → 3; the final round requires 1 → 9, with three numbers per lane. Wrong inputs add 4 points without resetting progress. Beat the deadline to heal 5 points per round; timeout deals 20 damage per remaining attempt.</li><li><b>Dis-Troy:</b> watch neon-pink gradient lights flash from the lane ends and fade in spawn order before each split, then parry 1 → 2 → 4 fragments. Clear all seven to remove one of four attempts and heal 20 points. Miss damage is 27.5 × remaining attempts × 0.5^split depth (before difficulty scaling); a miss restarts the round.</li></ul><h3>05 / Screen & pause</h3><p>Escape pauses or resumes. Opening this guide, leaving the tab, or losing focus pauses play; resume with the button. Full screen keeps the arena square. If your browser or embed blocks native full screen, the game fills its available frame instead. On itch.io, use the player’s full-screen control to expand the frame.</p><p>Language, sound, and best score are stored in this browser when storage is available. Private browsing or embedded-player restrictions may prevent saving. No account or network connection is needed to play.</p>`,
-ko:`<h3>01 / 패링</h3><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd>를 사용하세요. 터치 화면에서는 플레이 영역을 네 구역으로 나누어 적이 오는 방향의 구역을 누릅니다.</p><p>적이 라인의 짧은 눈금 사이에서 밝아지면 방어할 수 있습니다. 내부 게이지가 꽉 차고 얇은 원형 판정선에 닿을 때 정확히 맞추면 취약률이 <b>4퍼센트포인트</b> 회복됩니다. 조금 빠르거나 늦어도 방어 범위 안이면 피해 없이 막습니다.</p><p>막을 적이 없는 방향을 누르면 취약률이 <b>4포인트</b> 오릅니다. 적이 코어에 닿으면 피해를 받고, 취약률이 <b>100%를 넘으면</b> 종료됩니다. 일반 공격은 순서대로 도착하며 보스 분열체는 더 빠르게 이어집니다. 시간이 지날수록 속도와 등장 빈도가 증가합니다.</p><h3>02 / 스킬</h3><p>시작·재도전 전에 하나를 선택하세요. 적을 제거해 게이지를 채운 뒤 사용합니다. 스와이프는 사용할 라인에서 시작해 코어 쪽이나 바깥쪽으로 합니다. 라인을 가로지르는 스와이프는 발동하지 않습니다.</p><ul><li><b>백신 · 충전 20:</b> 취약률 29포인트 회복, 필드 전체가 0.3초 정지한 뒤 0.9초간 정상 속도로 재가속합니다(총 1.2초). 넉백은 없습니다. Space·스킬 버튼·라인 스와이프로 사용합니다.</li><li><b>프록시 · 충전 16:</b> 한 라인의 적을 모두 지우고 6초간 생성을 막습니다. 대기 웜과 미끼·본체 피싱도 제거합니다. Shift + 방향키/WASD·해당 라인 스와이프·스킬 버튼을 누른 뒤 방향 터치로 사용합니다. 프록시 처치는 충전하지 않으며 보스 진입부터 종료까지 모든 스킬이 잠깁니다. 진입 시 백신 둔화·프록시 장벽은 사라지고 미끼폴더는 유지됩니다.</li><li><b>미끼폴더 · 충전 24:</b> 50포인트 보호막을 생성합니다. Space·스킬 버튼·라인 스와이프로 사용합니다. 보호막을 파괴한 공격의 초과 피해는 코어에 전달되지 않습니다. 재사용하면 50으로 초기화되며 중첩되지 않습니다. 랜섬웨어를 흡수하면 코어 취약률이 10포인트 회복되고 방향 잠금도 막습니다.</li></ul><h3>03 / 위협</h3><ul><li><b>바이러스 / DDoS(3회부터):</b> 피격 시 각각 14 / 24포인트 피해.</li><li><b>트로이(8회):</b> 다른 적 안에 숨어 있습니다. 숙주를 막으면 다른 라인으로 탈출하며, 다시 막지 못하면 34포인트 피해를 줍니다. 숙주를 놓치면 대신 8포인트 추가 공격을 합니다.</li><li><b>웜(15회):</b> 라인 중간에서 카운트를 표시하며 기다립니다. 같은 라인에서 적을 제거할 때마다 줄어들고, 0이면 돌진합니다. 피해 30포인트, 정밀 패링 시 20포인트 회복.</li><li><b>랜섬웨어(25회):</b> 빠른 접근. 피해 8포인트와 해당 라인 1.2초 잠금.</li><li><b>피싱(40회):</b> 처음 보이는 적은 미끼입니다. 방어 범위에 들어오면 반대편에 연결선과 희미한 본체가 드러납니다. 미끼는 파괴할 수 없으니 본체를 막으세요. 실패 시 피해 40포인트.</li></ul><h3>04 / 보스</h3><p>제거 점수 100, 200, 300…마다 생성을 멈추고 남은 위협을 정리합니다. 이후 경고와 함께 보스 하나가 무작위로 등장합니다. 같은 보스가 연속으로 나올 수도 있습니다.</p><ul><li><b>페이크 도메인:</b> 가짜를 패링한 뒤 나머지 세 라인의 숫자를 순서대로 누르세요. 일반 패턴은 1→3, 마지막은 라인마다 3개씩 배정된 숫자 1→9를 누릅니다. 오입력은 4포인트 피해만 주고 진행은 유지됩니다. 성공마다 5포인트 회복, 시간 초과 시 남은 시도횟수당 20포인트 피해를 받습니다.</li><li><b>디스-트로이:</b> 분열 전에 라인 끝의 네온핑크 그라데이션 빛이 생성 순서대로 번쩍인 뒤 사라집니다. 이후 1→2→4 분열체를 막으면 시도횟수가 하나 줄고 20포인트 회복됩니다. 실패 피해는 27.5×남은 시도횟수×0.5^분열 단계이며 난이도 배율이 추가됩니다. 놓치면 해당 시도를 처음부터 재시도합니다.</li></ul><h3>05 / 화면·일시정지</h3><p>Escape로 정지·재개합니다. 도움말 열기·탭 전환·포커스 이탈 시 자동 정지되며 버튼으로 재개하세요. 전체화면에서도 플레이 영역은 정사각형을 유지합니다. 브라우저나 임베드가 전체화면을 허용하지 않으면 현재 프레임을 채웁니다. itch.io에서는 플레이어 자체의 전체화면 버튼으로 프레임을 확장할 수 있습니다.</p><p>언어·소리·최고 기록은 저장이 허용되는 경우 현재 브라우저에 보관합니다. 비공개 탐색이나 임베드 제한으로 저장되지 않을 수 있습니다. 플레이에 계정이나 네트워크 연결은 필요하지 않습니다.</p>`};
-HELP.en='<h3>Menu</h3><p>Play → mode → difficulty → ability → Start. In Stage mode, choose a stage before your ability. Back returns to the previous screen.</p><p>Each difficulty has five stages: 15, 30, 45, 65, and 100 eliminations. Stage 5 also requires defeating a boss. Easy Endless uses the original settings. Higher difficulties increase speed and damage and narrow the parry window. Damage numbers below are for Easy.</p><p>Settings: language, sound, full screen. During play, Menu pauses the game. Resume continues it; starting a new game resets it.</p>'+HELP.en;
-HELP.ko='<h3>메뉴</h3><p>Play → 모드 → 난이도 → 능력 → 시작. 스테이지 모드는 능력 선택 전에 스테이지를 고릅니다. 뒤로 버튼으로 이전 화면에 돌아갑니다.</p><p>스테이지 목표는 순서대로 15·30·45·65·100회 방어입니다. 5번은 보스까지 처치해야 끝납니다. 쉬움 무한 모드는 기존 설정입니다. 난이도가 높아지면 속도와 피해가 늘고 패링 범위가 좁아집니다. 아래 피해 수치는 쉬움 기준입니다.</p><p>Settings에서 언어, 효과음, 전체화면을 바꿉니다. 게임 중 메뉴를 누르면 일시정지됩니다. 이어하기는 현재 게임을 계속하고, 새 게임을 시작하면 초기화됩니다.</p>'+HELP.ko;
+// Initial hidden fallback; features.js builds the discovery-aware tabbed guide.
+const HELP={en:'<p>Arrow keys / WASD, or tap the incoming lane.</p>',ko:'<p>방향키/WASD 또는 적이 오는 라인을 터치하세요.</p>'};
 function refreshLanguage(){
   document.documentElement.lang=language;$('language').value=language;
   for(const node of document.querySelectorAll('[data-i18n]'))node.innerHTML=STATIC_TEXT[node.dataset.i18n][language==='ko'?1:0];
   for(const node of document.querySelectorAll('[data-i18n-label]'))node.setAttribute('aria-label',STATIC_TEXT[node.dataset.i18nLabel][language==='ko'?1:0]);
-  $('help-open').textContent=t('Help','도움말');$('help-title').textContent=t('How to play','플레이 방법');$('help-close').textContent=t('Close ×','닫기 ×');$('help-content').innerHTML=HELP[language];
+  $('help-open').textContent=t('Help','도움말');$('help-title').textContent=t('How to play','플레이 방법');$('help-close').textContent=t('Close ×','닫기 ×');if(typeof renderGuide==='function')renderGuide();else $('help-content').innerHTML=HELP[language];
   $('action').textContent=mode==='running'?t('Pause','일시정지'):mode==='paused'?t('Resume','계속하기'):mode==='cleared'?t('Retry stage','스테이지 재도전'):mode==='over'?t('Retry','다시 방어'):t('Start','방어 시작');
   if(mode==='paused'){$('overlay-title').textContent=t('Paused','일시정지');$('overlay-copy').textContent=t('Resume when you are ready.','준비되면 같은 위치에서 이어가세요.');}
   if(mode==='over'){$('overlay-title').textContent=t('Core disconnected','코어 연결 끊김');$('overlay-copy').textContent=t(`${score} eliminations · ${vulnerability}% vulnerability`,`${score}회 방어 · 취약률 ${vulnerability}%`);}
@@ -1005,7 +1047,7 @@ function refreshLanguage(){
   if(typeof refreshMenu==='function')refreshMenu();
 }
 $('language').addEventListener('change',event=>{language=event.target.value==='ko'?'ko':'en';try{localStorage.setItem('neon-parry-language',language);}catch{}refreshLanguage();});
-$('help-open').addEventListener('click',()=>{pauseGame();pointers.clear();$('help-dialog').showModal();});
+$('help-open').addEventListener('click',()=>{if(typeof renderGuide==='function')renderGuide();pauseGame();pointers.clear();$('help-dialog').showModal();});
 $('help-close').addEventListener('click',()=>$('help-dialog').close());
 $('help-dialog').addEventListener('click',event=>{if(event.target===$('help-dialog')){const r=event.target.getBoundingClientRect();if(event.clientX<r.left||event.clientX>r.right||event.clientY<r.top||event.clientY>r.bottom)event.target.close();}});
 function updateFullscreenButton(){const active=!!document.fullscreenElement||$('game-shell').classList.contains('expanded');$('fullscreen').textContent=active?t('Exit full screen','전체화면 종료'):t('Full screen','전체화면');$('fullscreen').setAttribute('aria-pressed',String(active));}

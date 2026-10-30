@@ -1,8 +1,8 @@
 # Neon Parry
 
-**현재 버전: 1.0.2 — [패치노트](CHANGELOG.md)**
+**현재 버전: 1.1.0 — [패치노트](CHANGELOG.md)**
 
-1.0.2에서 디스-트로이의 네온핑크 점멸·페이드아웃 예고와 백신의 0.3초 정지 + 0.9초 재가속을 실제 적용했습니다.
+1.1.0에서 보스 러쉬, 도전과제 18개, 발견 기록으로 공개되는 탭형 도움말을 추가했습니다. [모드·도전과제·도감 규칙](docs/PROGRESSION.md)을 확인하세요.
 
 이 저장소의 업데이트 기준은 첨부한 **Neon-Parry-Source.zip의 Electron 1.0.0 소스**입니다. 단일 HTML 버전이 아니라 `src/` 아래의 분리된 소스를 수정합니다. 원본 ZIP은 보존하고, 이후 수정은 아래 패치노트에 기록합니다.
 
@@ -20,6 +20,7 @@
 | `src/renderer/index.html` | 게임/메뉴 화면 |
 | `src/renderer/styles.css` | 디자인·반응형 배치 |
 | `src/renderer/js/game.js` | 판정·적·스킬·보스·모드·난이도·기록·번역 |
+| `src/renderer/js/features.js` | 도전과제·발견 저장·도감 탭과 도감 이미지 |
 | `src/renderer/js/menu.js` | 메인 메뉴·설정·스테이지·능력 선택 |
 | `src/renderer/js/desktop.js` | Electron용 전체화면·클립보드 연결; 브라우저에서는 비활성 |
 | `src/main/main.cjs`, `preload.cjs` | Electron 앱 창·로컬 파일 제공·제한된 IPC |

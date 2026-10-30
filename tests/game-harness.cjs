@@ -173,6 +173,7 @@ function createHarness(initialStorage = {}) {
   const context = vm.createContext(sandbox);
   const run = source => vm.runInContext(source, context, { timeout: 2000 });
   run(fs.readFileSync(path.join(rendererRoot, 'js', 'game.js'), 'utf8'));
+  run(fs.readFileSync(path.join(rendererRoot, 'js', 'features.js'), 'utf8'));
   run(fs.readFileSync(path.join(rendererRoot, 'js', 'menu.js'), 'utf8'));
   return {
     run,

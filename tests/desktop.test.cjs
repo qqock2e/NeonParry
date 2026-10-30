@@ -409,3 +409,18 @@ test('the real game shares scores through native clipboard and pauses the runnin
   assert.equal(game.run('copiedScores[1]'), 'Neon Parry · 최고 42회 방어!');
   assert.equal(game.element('share-status').textContent, '기록을 복사했어요.');
 });
+
+test('boss-rush score text is accepted by the isolated clipboard bridge',async()=>{
+  const {handlers,event,copies}=await desktopHarness();
+  await handlers.get('desktop:copy-score')(event(),'Neon Parry · Best: 20 bosses!');
+  assert.deepEqual(copies,['Neon Parry · Best: 20 bosses!']);
+  const {bridge,calls}=preloadHarness();await bridge.copyScore('Neon Parry · 최고 20회 보스 처치!');
+  assert.equal(calls[0][1],'Neon Parry · 최고 20회 보스 처치!');
+});
+
+test('renderer styles and scripts use one package version to avoid mixed cached releases',()=>{
+  const version=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version;
+  const html=fs.readFileSync(path.join(rendererRoot,'index.html'),'utf8');
+  const refs=[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>new URL(m[1],'app://neon-parry/neon-parry.html')).filter(u=>/\.(?:css|js)$/.test(u.pathname));
+  assert.equal(refs.length,5);for(const url of refs)assert.equal(url.searchParams.get('v'),version);
+});

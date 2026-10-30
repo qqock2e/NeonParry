@@ -20,6 +20,7 @@ const ASSETS = new Map([
   ['/neon-parry.html', ['index.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/js/game.js', ['js/game.js', 'text/javascript; charset=utf-8']],
+  ['/js/features.js', ['js/features.js', 'text/javascript; charset=utf-8']],
   ['/js/menu.js', ['js/menu.js', 'text/javascript; charset=utf-8']],
   ['/js/desktop.js', ['js/desktop.js', 'text/javascript; charset=utf-8']],
   ['/assets/icon-512.png', ['assets/icon-512.png', 'image/png']],
@@ -233,7 +234,7 @@ if (!app.requestSingleInstanceLock()) {
       assertTrustedSender(event, args, 1);
       const text = args[0];
       if (typeof text !== 'string' || text.length > 200 ||
-          !/^Neon Parry · (?:Best: \d+ eliminations!|최고 \d+회 방어!)$/.test(text)) {
+          !/^Neon Parry · (?:Best: \d+ (?:eliminations|bosses)!|최고 \d+회 (?:방어|보스 처치)!)$/.test(text)) {
         throw new TypeError('Invalid score text.');
       }
       clipboard.writeText(text);
