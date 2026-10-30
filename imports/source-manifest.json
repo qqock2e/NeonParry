@@ -1,0 +1,27 @@
+{
+  "archive": "Neon-Parry-Source.zip",
+  "sha256": "10e3b6efe0d2df4d4df3468ade8129b491c842f664f508fb79f57e0f7461b2d6",
+  "files": {
+    ".editorconfig": "3a151560c443f6fe8a734313554126e8625ff1ae0642d44115f9bd097b873390",
+    ".gitignore": "450d031de642215bfe52dc3bd622ede69133f1aded695359e294777eb4e8bf00",
+    "README.txt": "5280d44b7bcabff2ea4df51d854541ebb77bd60c079bc8a87cb171a6409c0d59",
+    "build/after-pack.cjs": "f1198161430fc09a31036651117a2918fa19b58b87a9605bdc58102c0be1d1a4",
+    "build/electron-builder.cjs": "a7e091c444dc0b1aa58e90fccfbf1d4b41cccf22b842a956a1b7b1bbff333c68",
+    "build/entitlements.mac.plist": "2f854c92910cb73b8ef14cbd797f563d4ba5515bc60dc41c3c2e699572887506",
+    "build/icons/icon.icns": "0f919aa21cde555d8f28a4305d433bdee051a65764f76a36de07b7da58b8f61f",
+    "build/icons/icon.ico": "39973d9b6bffd974ffd7fb7b1bb119a23b4a5ba10086f82a884429b8634b8af4",
+    "package-lock.json": "20df56d4cb6e4f3e7884ff499085cdb87643de7560e1e885f1872757b75d211d",
+    "package.json": "83327612f1871b7f4c46474cae0bb37dfa6d2db08ade215084cf170092c5522e",
+    "src/main/main.cjs": "50487040e89f76d57bef206badd9ec675801c83d1784f6fd20eac5f21450dd9d",
+    "src/main/preload.cjs": "438cfb96e10a0b2b7f54a5ad06ca3fb78c718fa02124111f448355f0ee388c1d",
+    "src/renderer/assets/icon-512.png": "5abd3bb3787b102b5365a30686244afc2226bda897e690bd0e82cdf4a8878c01",
+    "src/renderer/index.html": "0ece356537a48fc8d415a78c4ce9f35964e0ef544d9ddb27cb6930b522d78a1e",
+    "src/renderer/js/desktop.js": "9dcb25af4f17c97b270f70538013377f240ee681705bdb97b3e6bf211ff54663",
+    "src/renderer/js/game.js": "394541f530e18ddaab4ea08e5f238d7eb09dd0ab62f9993d136215f961e09822",
+    "src/renderer/js/menu.js": "53784ccfa96eb5ca0794a3907bc066a0046a71eb6920694332b3c966065bcae0",
+    "src/renderer/styles.css": "8130053d184803228cf0188fd3b95a49ddbe8716e9d4fae06d8aeb0d2a06d990",
+    "tests/desktop.test.cjs": "6644dd935345d8860266b0bccb7b39e8c1d69c5763665038c38da7a7a5b0f2e4",
+    "tests/game-harness.cjs": "54441f65b4cb37df7821a2e81571d0eda7a34a0df9187beb4f78c5545919e275",
+    "tests/game.test.cjs": "e6767eb7fbc50960dedcbea0a344898fd010d40f2b44274e1bea537033c0c233"
+  }
+}

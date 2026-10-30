@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Neon Parry</title>
+<meta name="theme-color" content="#111314">
+<link rel="icon" href="assets/icon-512.png" type="image/png">
+
+<!-- Game by qqock2e: https://qqock2e.itch.io/neon-parry -->
+<!-- Renderer for the Electron app. -->
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main id="game-shell">
+<header><div class="brand"><h1>NEON <span>PARRY</span></h1></div><div class="header-tools"><button id="menu-open" class="tool-button" hidden>Menu</button><span class="state-light" id="state-light" data-mode="idle" aria-hidden="true"></span></div></header>
+
+<section id="main-menu" class="menu-view" aria-labelledby="menu-title">
+  <div id="menu-board" class="menu-board" data-screen="home">
+    <svg class="menu-lines" viewBox="0 0 480 480" aria-hidden="true">
+      <path d="M240 40V440 M40 240H440" fill="none" stroke="#66765e" stroke-dasharray="2 9"/>
+      <circle cx="240" cy="240" r="173" fill="none" stroke="#66765e"/>
+      <circle cx="240" cy="240" r="104" fill="none" stroke="#66765e"/>
+      <path d="M240 128V144 M240 336V352 M128 240H144 M336 240H352" fill="none" stroke="#839780"/>
+    </svg>
+    <div class="menu-top"><button id="menu-back" hidden>← Back</button><p id="menu-context" hidden></p></div>
+    <h2 id="menu-title" tabindex="-1">NEON PARRY</h2>
+    <div class="menu-screen" data-menu-screen="home">
+      <div id="menu-resume-panel" hidden><button id="menu-resume" class="menu-button">Resume</button><p id="menu-resume-copy" class="menu-small"></p></div>
+      <div class="menu-list home-list">
+        <button id="menu-play" class="menu-button primary">Play</button>
+        <button id="help-open" class="menu-button" aria-haspopup="dialog">Help</button>
+        <button id="menu-settings" class="menu-button">Settings</button>
+      </div>
+    </div>
+    <div class="menu-screen" data-menu-screen="mode" hidden>
+      <div class="menu-list mode-list" role="group" aria-labelledby="menu-title">
+        <button class="menu-button" data-menu-mode="stage" aria-pressed="false"><strong>Stages</strong></button>
+        <button class="menu-button" data-menu-mode="endless" aria-pressed="true"><strong>Endless</strong></button>
+      </div>
+    </div>
+    <div class="menu-screen" data-menu-screen="difficulty" hidden>
+      <div class="menu-list" role="group" aria-labelledby="menu-title">
+        <button class="menu-button" data-menu-difficulty="easy" aria-pressed="true"><strong>Easy</strong></button>
+        <button class="menu-button" data-menu-difficulty="normal" aria-pressed="false"><strong>Normal</strong></button>
+        <button class="menu-button" data-menu-difficulty="hard" aria-pressed="false"><strong>Hard</strong></button>
+        <button class="menu-button" data-menu-difficulty="extreme" aria-pressed="false"><strong>Extreme</strong></button>
+      </div>
+    </div>
+    <div class="menu-screen" data-menu-screen="stage" hidden>
+      <div class="stage-options" role="group" aria-labelledby="menu-title">
+        <button class="stage-option" data-menu-stage="1" aria-pressed="true"><strong>01</strong><span class="stage-state">15</span></button>
+        <button class="stage-option" data-menu-stage="2" aria-pressed="false"><strong>02</strong><span class="stage-state">30</span></button>
+        <button class="stage-option" data-menu-stage="3" aria-pressed="false"><strong>03</strong><span class="stage-state">45</span></button>
+        <button class="stage-option" data-menu-stage="4" aria-pressed="false"><strong>04</strong><span class="stage-state">65</span></button>
+        <button class="stage-option" data-menu-stage="5" aria-pressed="false"><strong>05</strong><span class="stage-state">Boss</span></button>
+      </div>
+      <p id="stage-count" class="menu-small"></p>
+    </div>
+    <div class="menu-screen" data-menu-screen="ability" hidden>
+      <div class="loadout-options" role="group" aria-labelledby="menu-title">
+        <button class="loadout-option" data-menu-skill="vaccine" aria-pressed="true"><span class="ability-glyph" aria-hidden="true">＋</span><strong class="ability-name">Vaccine</strong></button>
+        <button class="loadout-option" data-menu-skill="proxy" aria-pressed="false"><span class="ability-glyph" aria-hidden="true">⇥</span><strong class="ability-name">Proxy</strong></button>
+        <button class="loadout-option" data-menu-skill="decoy" aria-pressed="false"><span class="ability-glyph" aria-hidden="true">▱</span><strong class="ability-name">Decoy</strong></button>
+      </div>
+      <div class="ability-detail"><p id="ability-description"></p><p id="ability-cost" class="menu-small"></p><p id="ability-control" class="menu-small"></p></div>
+      <button id="menu-start" class="menu-button primary">Start</button>
+      <p id="menu-start-note" class="menu-small" hidden></p>
+      <p id="menu-record" class="menu-small" hidden></p>
+    </div>
+    <div class="menu-screen" data-menu-screen="settings" hidden>
+      <div class="settings-list">
+        <label class="settings-row" for="language"><span id="settings-language-label">Language</span><select id="language" aria-label="Language"><option value="en">English</option><option value="ko">한국어</option></select></label>
+        <div class="settings-row"><span id="settings-sound-label">Sound</span><button id="sound-toggle" class="sound-toggle" aria-pressed="true" data-i18n-label="a28" aria-label="Sound on. Press to mute" data-i18n="s11">Sound on</button></div>
+        <div class="settings-row"><span id="settings-display-label">Display</span><button id="fullscreen" class="tool-button" aria-pressed="false">Full screen</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div id="game-view" hidden>
+<section class="layout" data-i18n-label="a15" aria-label="Core defense game">
+<div class="console">
+<div class="arena" id="arena" data-i18n-label="a16" aria-label="Four-lane defense arena. Use arrow keys, WASD, or tap the incoming lane." data-state="idle">
+<svg viewBox="0 0 480 480" aria-hidden="true">
+<g id="camera"><g id="world">
+<path class="lane" d="M217 0V136 M263 0V136 M217 344V480 M263 344V480 M0 217H136 M0 263H136 M344 217H480 M344 263H480"></path>
+<path class="axis" d="M240 40V440 M40 240H440"></path>
+<circle cx="240" cy="240" r="173" fill="none" stroke="#252e29"></circle>
+<circle id="guard-band" cx="240" cy="240" r="104" fill="none" stroke="#b7eaaa" stroke-opacity=".045" stroke-width="38"></circle>
+<circle id="guard-outer" cx="240" cy="240" r="123" fill="none" stroke="#56644f" stroke-opacity=".5" stroke-dasharray="2 8"></circle>
+<circle id="guard-inner" cx="240" cy="240" r="85" fill="none" stroke="#56644f" stroke-opacity=".5" stroke-dasharray="2 8"></circle>
+<circle class="target" cx="240" cy="240" r="104"></circle>
+<path class="hud-marks" d="M25 49l7 -10m0 10l7 -10m0 10l7 -10 M433 441l7 -10m0 10l7 -10m0 10l7 -10 M29 429h16m-16 5h8 M435 46h16m-8 5h8"></path>
+<path stroke="#54634e" stroke-width="1" stroke-dasharray="3 7" fill="none" d="M29 60V95 M451 385V420"></path>
+<path class="tick" d="M240 128V144 M240 336V352 M128 240H144 M336 240H352 M164 164L171 171 M309 309L316 316 M164 316L171 309 M309 171L316 164"></path>
+<g id="effects"></g><g id="lane-states"></g><g id="phishing-links"></g><g id="enemies"></g><g id="boss-entities"></g>
+<g id="core">
+<path class="portrait-platform" d="M207 261L240 247L273 261L240 275Z"></path>
+<circle class="core-rim" cx="240" cy="240" r="35" stroke-dasharray="17 5 2 5"></circle>
+<g id="fighter" class="fighter" transform="translate(240 240)" data-flash="false" data-pose="idle">
+<path class="sprite-part" id="scarf" d="M-7 -9L-25 -5L-17 0L0 -4Z" fill="#b7eaaa"></path>
+<path class="sprite-part" id="legs" d="M-7 9L-12 25L-5 25L2 15L9 25L17 25L10 7Z" fill="#7c9079" stroke="#a5b99d"></path>
+<path class="sprite-part" id="torso" d="M-8 -10L6 -11L13 9L3 15L-12 9Z" fill="#4b634f" stroke="#b7eaaa"></path>
+<path class="sprite-part" d="M-10 -24L5 -25L12 -18L10 -7L3 -3L-9 -7L-13 -15Z" fill="#c5d2bc" stroke="#dde8d4"></path>
+<path class="sprite-part" d="M-8 -17L11 -17L10 -11L-6 -11Z" fill="#17251d"></path>
+<path class="sprite-part" d="M0 -16H10V-13H0Z" fill="#b7eaaa"></path>
+<path class="sprite-part" id="guard-arm" d="M5 -6L17 0L12 6L1 0Z" fill="#839f7c" stroke="#d5e7cc"></path>
+</g>
+<g id="guard-pose" visibility="hidden"><path class="guard-shield" d="M221 207L226 202H254L259 207 M225 210H255"></path><path stroke="#b7eaaa" stroke-width="1" fill="none" d="M219 210L215 217 M261 210L265 217"></path></g>
+</g>
+<g id="decoy-folder" transform="translate(272 267)" visibility="hidden"><path class="decoy-receiver" d="M-20 -17H21V17H-20Z"></path><path class="decoy-folder" d="M-13 -8H-3L1 -4H13V10H-13Z"></path><path stroke="#9ccbe1" stroke-width="1" d="M-9 0H9"></path><rect id="folder-capacity" x="-12" y="14" width="0" height="2" fill="#9ccbe1"></rect></g>
+<g id="foreground-fx"></g>
+</g></g>
+</svg>
+<button class="direction" data-dir="up" data-i18n-label="a24" aria-label="Up parry">↑</button>
+<button class="direction" data-dir="right" data-i18n-label="a25" aria-label="Right parry">→</button>
+<button class="direction" data-dir="down" data-i18n-label="a26" aria-label="Down parry">↓</button>
+<button class="direction" data-dir="left" data-i18n-label="a27" aria-label="Left parry">←</button>
+<div class="boss-hud" id="boss-hud" hidden><span id="boss-name"></span><span class="boss-pips" id="boss-pips" data-i18n-label="a22" aria-label="Attempts remaining"></span></div>
+<div class="boss-banner" id="boss-banner" role="status" hidden><small id="boss-banner-tag"></small><strong id="boss-banner-title"></strong><p id="boss-banner-copy"></p></div>
+<div class="reaction-meter" id="reaction-meter" role="progressbar" data-i18n-label="a21" aria-label="Main Domain reaction time" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div id="reaction-fill"></div></div><div class="boss-impact" aria-hidden="true"></div>
+<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title" data-i18n="s6">Protect the core</strong><p id="overlay-copy" data-i18n="s0">Parry in the incoming direction when the enemy lights up.<br>Hit the timing ring precisely to recover vulnerability.</p><div class="skill-choices" id="skill-choices" role="group" data-i18n-label="a19" aria-label="Choose a starting skill"><button class="skill-choice" data-skill="vaccine" aria-pressed="true" data-i18n="s3">＋ Vaccine<span>Heal &amp; push back</span></button><button class="skill-choice" data-skill="proxy" aria-pressed="false" data-i18n="s2">⇥ Proxy<span>Clear one lane</span></button><button class="skill-choice" data-skill="decoy" aria-pressed="false" data-i18n="s1">▱ Decoy<span>50-point shield</span></button></div></div>
+<div class="screen-glitch" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+</div>
+<div class="legend" data-i18n-label="a17" aria-label="Unlocked threats"><span><i class="diamond" aria-hidden="true"></i><span data-i18n="Virus">Virus</span></span><span data-unlock="3" hidden><i class="dot" aria-hidden="true"></i>DDoS</span><span data-unlock="8" hidden><i class="hex" aria-hidden="true"></i><span data-i18n="Trojan">Trojan</span></span><span data-unlock="15" hidden><i class="worm-icon" aria-hidden="true"></i><span data-i18n="Worm">Worm</span></span><span data-unlock="25" hidden><i class="ransom-icon" aria-hidden="true"></i><span data-i18n="Ransomware">Ransomware</span></span><span data-unlock="40" hidden><i class="phish-icon" aria-hidden="true"></i><span data-i18n="Phishing">Phishing</span></span></div>
+<p id="message" role="status"></p>
+</div>
+<aside class="sidebar" data-i18n-label="a18" aria-label="Defense status and controls">
+<div class="run-heading"><p id="run-label"></p><div id="stage-progress" hidden><span id="stage-goal"></span><div class="meter" id="stage-progress-meter" role="progressbar" aria-label="Stage progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="stage-progress-fill"></div></div></div></div>
+<div><div class="meter-label"><label id="vulnerability-label" data-i18n="s12">Vulnerability</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill" style="width: 0%;"></div></div><div class="decoy-panel" id="decoy-panel" hidden><div class="meter-label"><label id="decoy-label" data-i18n="s10">Decoy</label><output id="decoy-value">0 / 50</output></div><div class="meter" id="decoy-meter" role="progressbar" aria-labelledby="decoy-label" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0"><div class="meter-fill" id="decoy-fill" style="width: 0%;"></div></div></div></div>
+<div class="score-row"><div><small data-i18n="s13">Eliminations</small><strong id="score">0</strong></div><div><small data-i18n="s8">Best</small><strong id="best">0</strong></div></div>
+<div class="skill-panel"><button class="skill-button" id="skill" disabled data-i18n-label="a23" aria-label="Vaccine skill charging" data-ready="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path id="skill-glyph" d="M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22"></path></svg><span><strong id="skill-name" data-i18n="s14">Vaccine</strong><small id="skill-key" data-i18n="s4">Space / lane swipe</small></span></button><div class="skill-track" id="skill-meter" role="progressbar" data-i18n-label="a20" aria-label="Skill charge" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><div id="skill-fill" style="width: 0%;"></div></div><p id="skill-status" role="status" data-i18n="s5">Eliminate to charge · 0/20</p></div>
+<div class="controls"><button id="action" data-i18n="s9">Start</button><button id="share" data-i18n="s7">Share score ↗</button><button id="next-stage" data-menu-copy="nextStage" hidden>Next stage →</button></div>
+<p id="share-status" role="status"></p>
+</aside>
+</section><footer></footer>
+</div>
+<dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">How to play</h2><button id="help-close" class="tool-button" autofocus>Close ×</button></div><div id="help-content"></div></dialog>
+</main>
+<script src="js/game.js"></script>
+<script src="js/menu.js"></script>
+<script src="js/desktop.js"></script>
+</body>
+</html>

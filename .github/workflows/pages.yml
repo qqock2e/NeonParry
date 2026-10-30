@@ -18,11 +18,16 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Test imported game and desktop bridge
+        run: npm test
       - name: Prepare static site
         run: |
           python3 scripts/package_itch.py
           mkdir _site
-          cp index.html _site/index.html
+          cp -R src/renderer/. _site/
           cp dist/NeonParry-itch.zip _site/NeonParry-itch.zip
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
