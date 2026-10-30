@@ -34,7 +34,7 @@ function saveProgress(){
 let language='en';
 try{if(localStorage.getItem('neon-parry-language')==='ko')language='ko';}catch{}
 function t(en,ko){return language==='ko'?ko:en;}
-const STATIC_TEXT={"s0": ["Parry in the incoming direction when the enemy lights up.<br>Hit the timing ring precisely to recover vulnerability.", "점선 범위에 들어오면 해당 방향으로 방어.<br>정확히 판정선에 맞추면 취약률이 회복됩니다."], "s1": ["▱ Decoy<span>50-point shield</span>", "▱ 미끼폴더<span>50% 피해 흡수</span>"], "s2": ["⇥ Proxy<span>Clear one lane</span>", "⇥ 프록시<span>한 방향 정리</span>"], "s3": ["＋ Vaccine<span>Heal & push back</span>", "＋ 백신<span>회복·밀쳐내기</span>"], "s4": ["Space / lane swipe", "Space / 라인 스와이프"], "s5": ["Charge by eliminating threats.", "처치할 때마다 충전됩니다."], "s6": ["Protect the core", "코어를 지키세요."], "s7": ["Share score ↗", "기록 공유 ↗"], "s8": ["Best", "최고 기록"], "s9": ["Start", "방어 시작"], "s10": ["Decoy", "미끼폴더"], "s11": ["Sound on", "소리 켬"], "s12": ["Vulnerability", "취약률"], "s13": ["Eliminations", "방어"], "s14": ["Vaccine", "백신"], "Virus": ["Virus", "바이러스"], "Trojan": ["Trojan", "트로이"], "Worm": ["Worm", "웜"], "Ransomware": ["Ransomware", "랜섬웨어"], "Phishing": ["Phishing", "피싱"], "a15": ["Core defense game", "코어 방어 게임"], "a16": ["Four-lane defense arena. Use arrow keys, WASD, or tap the incoming lane.", "네 방향 방어 영역. 방향키, WASD 또는 다가오는 적의 방향을 터치하세요."], "a17": ["Unlocked threats", "현재 해금된 위협"], "a18": ["Defense status and controls", "방어 상태 및 조작"], "a19": ["Choose a starting skill", "시작 스킬 선택"], "a20": ["Skill charge", "스킬 충전"], "a21": ["Main Domain reaction time", "메인 도메인 반응 시간"], "a22": ["Attempts remaining", "남은 시도횟수"], "a23": ["Vaccine skill", "백신 스킬"], "a24": ["Parry up (↑ or W)", "위쪽 패링 (↑ 또는 W)"], "a25": ["Parry right (→ or D)", "오른쪽 패링 (→ 또는 D)"], "a26": ["Parry down (↓ or S)", "아래쪽 패링 (↓ 또는 S)"], "a27": ["Parry left (← or A)", "왼쪽 패링 (← 또는 A)"], "a28": ["Sound on. Press to mute", "효과음 켜짐. 눌러서 음소거"]};
+const STATIC_TEXT={"s0": ["Parry in the incoming direction when the enemy lights up.<br>Hit the timing ring precisely to recover vulnerability.", "점선 범위에 들어오면 해당 방향으로 방어.<br>정확히 판정선에 맞추면 취약률이 회복됩니다."], "s1": ["▱ Decoy<span>50-point shield</span>", "▱ 미끼폴더<span>50% 피해 흡수</span>"], "s2": ["⇥ Proxy<span>Clear one lane</span>", "⇥ 프록시<span>한 방향 정리</span>"], "s3": ["＋ Vaccine<span>Heal & slow</span>", "＋ 백신<span>회복·둔화</span>"], "s4": ["Space / lane swipe", "Space / 라인 스와이프"], "s5": ["Charge by eliminating threats.", "처치할 때마다 충전됩니다."], "s6": ["Protect the core", "코어를 지키세요."], "s7": ["Share score ↗", "기록 공유 ↗"], "s8": ["Best", "최고 기록"], "s9": ["Start", "방어 시작"], "s10": ["Decoy", "미끼폴더"], "s11": ["Sound on", "소리 켬"], "s12": ["Vulnerability", "취약률"], "s13": ["Eliminations", "방어"], "s14": ["Vaccine", "백신"], "Virus": ["Virus", "바이러스"], "Trojan": ["Trojan", "트로이"], "Worm": ["Worm", "웜"], "Ransomware": ["Ransomware", "랜섬웨어"], "Phishing": ["Phishing", "피싱"], "a15": ["Core defense game", "코어 방어 게임"], "a16": ["Four-lane defense arena. Use arrow keys, WASD, or tap the incoming lane.", "네 방향 방어 영역. 방향키, WASD 또는 다가오는 적의 방향을 터치하세요."], "a17": ["Unlocked threats", "현재 해금된 위협"], "a18": ["Defense status and controls", "방어 상태 및 조작"], "a19": ["Choose a starting skill", "시작 스킬 선택"], "a20": ["Skill charge", "스킬 충전"], "a21": ["Main Domain reaction time", "메인 도메인 반응 시간"], "a22": ["Attempts remaining", "남은 시도횟수"], "a23": ["Vaccine skill", "백신 스킬"], "a24": ["Parry up (↑ or W)", "위쪽 패링 (↑ 또는 W)"], "a25": ["Parry right (→ or D)", "오른쪽 패링 (→ 또는 D)"], "a26": ["Parry down (↓ or S)", "아래쪽 패링 (↓ 또는 S)"], "a27": ["Parry left (← or A)", "왼쪽 패링 (← 또는 A)"], "a28": ["Sound on. Press to mute", "효과음 켜짐. 눌러서 음소거"]};
 
 const $ = id => document.getElementById(id);
 const NS = 'http://www.w3.org/2000/svg';
@@ -52,8 +52,9 @@ const TYPES={
   phishing:{color:'#f0bd91',damage:40,travel:1900,unlock:40},
   echo:{color:'#e4ca93',damage:8,travel:700,unlock:8}
 };
-const SKILLS={vaccine:{get name(){return t('Vaccine','백신')},cost:20,heal:24},proxy:{get name(){return t('Proxy','프록시')},cost:16,duration:5000},decoy:{get name(){return t('Decoy','미끼폴더')},cost:24,capacity:50,ransomHeal:10}};
+const SKILLS={vaccine:{get name(){return t('Vaccine','백신')},cost:20,heal:29},proxy:{get name(){return t('Proxy','프록시')},cost:16,duration:6000},decoy:{get name(){return t('Decoy','미끼폴더')},cost:24,capacity:50,ransomHeal:10}};
 let selectedSkill='vaccine',charge=0,proxyArmed=false,decoyCapacity=0;
+let vaccineSlowAt=-Infinity,retrySkill=null;
 let arrivalSlots=[],nextWorm=Infinity,lockedUntil={},proxyUntil={},pointers=new Map();
 let best = 0;
 try {
@@ -232,7 +233,7 @@ function startGame() {
   enemies = []; effects = []; nextSpawn = 1200/difficulty.speed; lastInput = {}; messageUntil = 0; coreFlashUntil = 0; recoveryUntil = 0;
   $('enemies').replaceChildren(); $('effects').replaceChildren(); $('foreground-fx').replaceChildren(); $('phishing-links').replaceChildren();
   previousDirection=null; poseUntil=0; flashUntil=0; damagedUntil=0;
-  charge=0; proxyArmed=false; decoyCapacity=0; arrivalSlots=[]; nextWorm=Infinity; lockedUntil={}; proxyUntil={}; pointers.clear();
+  charge=0; proxyArmed=false; decoyCapacity=0; vaccineSlowAt=-Infinity;retrySkill=null;arrivalSlots=[]; nextWorm=Infinity; lockedUntil={}; proxyUntil={}; pointers.clear();
   $('skill-choices').hidden=true; $('arena').dataset.armed='false';
   shake={at:0,until:0,power:0}; $('world').removeAttribute('transform');
   $('vulnerability').dataset.damaged='false'; resetPose();
@@ -253,7 +254,7 @@ function pauseGame() {
   $('action').textContent = t('Resume','계속하기'); updateHUD();
 }
 function resumeGame() {
-  if(mode!=='paused'||$('help-dialog').open)return;
+  if(mode!=='paused'||($('help-dialog').open||$('patch-dialog').open))return;
   mode = 'running'; lastFrame = null; $('overlay').hidden = true;
   $('action').textContent = t('Pause','일시정지'); updateHUD(); frame = requestAnimationFrame(loop);
 }
@@ -266,7 +267,7 @@ function gameOver() {
   $('overlay-symbol').textContent = '×'; $('overlay-title').textContent = t('Core disconnected','코어 연결 끊김');
   $('overlay-copy').textContent = t(`${score} eliminations · ${vulnerability}% vulnerability`,`${score}회 방어 · 취약률 ${vulnerability}%`);
   $('overlay').hidden = false; $('action').textContent = t('Retry','다시 방어');
-  $('skill-choices').hidden=true; proxyArmed=false; pointers.clear(); $('arena').dataset.armed='false'; updateSkillHUD();
+  $('skill-choices').hidden=false; proxyArmed=false; pointers.clear(); $('arena').dataset.armed='false'; updateSkillHUD();
 }
 function launchRun(){
   const difficulty=Object.hasOwn(RUN_DIFFICULTIES,runSelection.difficulty)?runSelection.difficulty:'easy';
@@ -277,17 +278,18 @@ function launchRun(){
   selectedSkill=skill;
   for(const button of document.querySelectorAll('[data-skill]'))button.setAttribute('aria-pressed',String(button.dataset.skill===selectedSkill));
   if($('help-dialog').open)$('help-dialog').close();
+  if($('patch-dialog').open)$('patch-dialog').close();
   if(typeof showGameView==='function')showGameView();
   startGame();requestAnimationFrame(fitConsole);
   $('action').focus({preventScroll:true});
 }
 function replayRun(){
-  if(activeRun)runSelection={mode:activeRun.mode,difficulty:activeRun.difficulty,stage:activeRun.stage,skill:activeRun.skill};
+  if(activeRun)runSelection={mode:activeRun.mode,difficulty:activeRun.difficulty,stage:activeRun.stage,skill:retrySkill||activeRun.skill};
   launchRun();
 }
 function advanceStage(){
   if(mode!=='cleared'||activeRun?.mode!=='stage'||activeRun.stage>=5)return;
-  runSelection={mode:'stage',difficulty:activeRun.difficulty,stage:activeRun.stage+1,skill:activeRun.skill};launchRun();
+  runSelection={mode:'stage',difficulty:activeRun.difficulty,stage:activeRun.stage+1,skill:retrySkill||activeRun.skill};launchRun();
 }
 function returnToMenu(){
   pauseGame();pointers.clear();
@@ -335,7 +337,7 @@ function completeStage(){
   stageRecords[key]={...stageRecords[key],cleared:true,bestScore:Math.max(Number(previous.bestScore)||0,score),bestVulnerability:Math.min(Number.isFinite(previous.bestVulnerability)?previous.bestVulnerability:Infinity,vulnerability)};
   saveProgress();
   $('overlay-symbol').textContent='✓';$('overlay-title').textContent=t(`Stage ${activeRun.stage} cleared`,`스테이지 ${activeRun.stage} 클리어`);$('overlay-copy').textContent=stageResultCopy();
-  $('overlay').hidden=false;$('skill-choices').hidden=true;$('action').textContent=t('Retry stage','스테이지 재도전');
+  $('overlay').hidden=false;$('skill-choices').hidden=false;$('action').textContent=t('Retry stage','스테이지 재도전');
   updateHUD();updateLaneStates();
   if(typeof refreshMenu==='function')refreshMenu();
 }
@@ -576,7 +578,8 @@ function maybeQueueBoss(){
   if(bossFight||score<nextBossAt||mode!=='running')return;
   const milestone=nextBossAt;nextBossAt+=100;
   bossFight={phase:'draining',milestone,kind:null,attacks:[],mains:new Map(),lastPress:{}};
-  nextSpawn=Infinity;nextWorm=Infinity;
+  vaccineSlowAt=-Infinity;proxyUntil={};proxyArmed=false;pointers.clear();$('arena').dataset.armed='false';
+  nextSpawn=Infinity;nextWorm=Infinity;updateLaneStates();updateSkillHUD();
   for(const enemy of [...enemies]){
     if(!enemy.spawned&&enemy.state==='moving'){removeEnemy(enemy);continue;}
     if(enemy.kind==='worm'&&enemy.state==='dormant'){
@@ -637,30 +640,57 @@ function startDomainRound(dir=randomBossDirection(bossFight.lastDir)){
 }
 function startDomainReaction(attack){
   bossFight.origin=attack.dir;bossFight.lastContact={x:attack.x,y:attack.y,dir:attack.dir};
-  const duration={5:1100,4:950,3:800,2:650,1:1250}[bossFight.remaining]/currentDifficulty().bossSpeed;
-  const dirs=Object.keys(DIRECTIONS).filter(dir=>dir!==attack.dir),targets=bossFight.remaining===1?dirs:[dirs[Math.floor(Math.random()*dirs.length)]];
+  const duration={5:2400,4:2200,3:2000,2:1800,1:6000}[bossFight.remaining]/currentDifficulty().bossSpeed;
+  const targets=Object.keys(DIRECTIONS).filter(dir=>dir!==attack.dir);
+  const sequence=Array.from({length:bossFight.remaining===1?3:1},()=>targets).flat();
+  for(let i=sequence.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[sequence[i],sequence[j]]=[sequence[j],sequence[i]];}
+  bossFight.sequence=sequence;bossFight.sequenceIndex=0;
   bossFight.reactionDuration=duration;bossPhase('reaction',duration);playSound('boss-freeze');
   for(const dir of targets){
     const [dx,dy]=DIRECTIONS[dir],x=240+dx*TARGET_RADIUS,y=240+dy*TARGET_RADIUS;
     const group=svg('g',{transform:`translate(${x} ${y})`});
     group.append(svg('path',{class:'boss-main',d:'M-17 -9L0 -19L17 -9V9L0 19L-17 9Z'}));
     group.append(svg('path',{class:'boss-main-cross',d:'M-25 -13V-25H-13 M13 -25H25V-13 M25 13V25H13 M-13 25H-25V13 M-8 0H8 M0 -8V8'}));
-    $('boss-entities').append(group);bossFight.mains.set(dir,{node:group,x,y,dir,radius:TARGET_RADIUS,kind:'trojan'});
+    const label=svg('text',{class:'domain-number',y:5}),queue=svg('text',{class:'domain-queue',y:35});group.append(label,queue);
+    $('boss-entities').append(group);bossFight.mains.set(dir,{node:group,label,queue,x,y,dir,radius:TARGET_RADIUS,kind:'trojan'});
   }
-  updateBossHUD();
+  updateDomainNumbers();updateBossHUD();
+}
+function updateDomainNumbers(){
+  const fight=bossFight,next=fight.sequence[fight.sequenceIndex];
+  for(const [dir,main] of fight.mains){
+    const numbers=fight.sequence.map((d,i)=>d===dir&&i>=fight.sequenceIndex?i+1:null).filter(n=>n!==null);
+    main.label.textContent=numbers[0]||'';main.queue.textContent=numbers.slice(1).join(' · ');main.node.dataset.next=String(dir===next);
+  }
 }
 function startDestroyRound(dir=randomBossDirection(bossFight.lastDir)){
   clearBossActors();bossFight.lastDir=dir;bossFight.lastPress={};bossFight.depth=0;bossPhase('active');
   const travel=(1500-(4-bossFight.remaining)*200)/currentDifficulty().bossSpeed;makeBossAttack(dir,clock+travel,travel,0);
 }
 function spawnDestroyWave(depth){
-  bossFight.depth=depth;const bossSpeed=currentDifficulty().bossSpeed,base=(1500-(4-bossFight.remaining)*200)/bossSpeed,travel=base*(depth===1?.62:.48),gap=(220-(4-bossFight.remaining)*20)/bossSpeed;
-  let previous=bossFight.lastContact?.dir||bossFight.lastDir;
+  const fight=bossFight;fight.depth=depth;fight.wavePlan=[];fight.previewNodes=[];
+  let previous=fight.lastContact?.dir||fight.lastDir;
   for(let i=0;i<2**depth;i++){
-    const dir=randomBossDirection(previous);
-    makeBossAttack(dir,clock+travel+i*gap,travel,depth);previous=dir;
+    const dir=randomBossDirection(previous);fight.wavePlan.push(dir);previous=dir;
+    const [dx,dy]=DIRECTIONS[dir],node=svg('g',{'data-preview':i});
+    node.append(svg('path',{d:`M${240+dx*145} ${240+dy*145}L${240+dx*219} ${240+dy*219}`,stroke:'#e6acc9','stroke-width':5}));
+    const number=svg('text',{x:240+dx*183+dy*16,y:245+dy*183+dx*16,class:'boss-attack-label'});number.textContent=i+1;node.append(number);node.setAttribute('opacity',0);
+    $('boss-entities').append(node);fight.previewNodes.push(node);
   }
-  playSound('reveal');updateBossHUD();
+  fight.previewInterval=190/currentDifficulty().bossSpeed;
+  bossPhase('telegraph',fight.wavePlan.length*fight.previewInterval+160/currentDifficulty().bossSpeed);updateDestroyPreview();playSound('reveal');
+}
+function updateDestroyPreview(){
+  const fight=bossFight,index=Math.floor((fxClock-fight.phaseAt)/fight.previewInterval);
+  for(let i=0;i<fight.previewNodes.length;i++)fight.previewNodes[i].setAttribute('opacity',i===index ? .75 : 0);
+}
+function launchDestroyWave(){
+  const fight=bossFight,bossSpeed=currentDifficulty().bossSpeed;
+  for(const node of fight.previewNodes)node.remove();fight.previewNodes=[];
+  const base=(1500-(4-fight.remaining)*200)/bossSpeed,travel=base*(fight.depth===1?.62:.48),gap=(220-(4-fight.remaining)*20)/bossSpeed;
+  bossPhase('active');fight.lastPress={};
+  fight.wavePlan.forEach((dir,i)=>makeBossAttack(dir,clock+travel+i*gap,travel,fight.depth));
+  playSound('reveal');
 }
 function bossHitFeedback(contact,heavy=false){
   strikePose(contact.dir,heavy);shatterEnemy(contact,heavy);addEffect(contact.dir,heavy?'perfect':'guard');shakeCamera(heavy?3:1.8);playSound('boss-hit');
@@ -680,17 +710,24 @@ function bossParry(dir,inputClock=clock){
 }
 function guardMainDomain(dir){
   const fight=bossFight;
-  if(fxClock>fight.phaseUntil){failDomain();return;}
+  if(fxClock>=fight.phaseUntil){failDomain();return;}
   const main=fight.mains.get(dir);
-  if(!main){failDomain();return;}
-  main.node.remove();fight.mains.delete(dir);fight.lastContact=main;bossHitFeedback(main,true);
-  if(fight.mains.size===0){fight.remaining--;updateBossHUD();if(!fight.remaining)finishBoss();else bounceBoss(550);}
+  if(!main||fight.sequence[fight.sequenceIndex]!==dir){
+    dealDamage(MISINPUT_DAMAGE,t('Wrong sequence','순서 오류'),false);addEffect(dir,'miss');return;
+  }
+  fight.sequenceIndex++;fight.lastContact=main;bossHitFeedback(main,true);
+  if(!fight.sequence.slice(fight.sequenceIndex).includes(dir)){main.node.remove();fight.mains.delete(dir);}
+  if(fight.sequenceIndex===fight.sequence.length){
+    fight.remaining--;vulnerability=Math.max(0,Math.round((vulnerability-5)*10)/10);recoveryUntil=clock+700;$('vulnerability-fill').dataset.recovering='true';updateHUD();
+    showMessage(t('Sequence cleared / vulnerability −5 pp','순서 패링 성공 / 취약률 −5%p'));
+    if(!fight.remaining)finishBoss();else bounceBoss(550);
+  }else updateDomainNumbers();
 }
 function resolveDestroyHit(){
   const fight=bossFight;
   if(fight.attacks.length===0){
     if(fight.depth<2)spawnDestroyWave(fight.depth+1);
-    else{fight.remaining--;vulnerability=Math.max(0,vulnerability-25);recoveryUntil=clock+700;$('vulnerability-fill').dataset.recovering='true';updateHUD();showMessage(t('Split blocked / vulnerability −25 pp','분열 차단 / 취약률 −25%'));if(!fight.remaining)finishBoss();else bounceBoss(600);}
+    else{fight.remaining--;vulnerability=Math.max(0,vulnerability-20);recoveryUntil=clock+700;$('vulnerability-fill').dataset.recovering='true';updateHUD();showMessage(t('Split blocked / vulnerability −20 pp','분열 차단 / 취약률 −20%p'));if(!fight.remaining)finishBoss();else bounceBoss(600);}
   }
 }
 function bounceBoss(duration){
@@ -706,7 +743,7 @@ function failDomain(){
 }
 function missDestroy(attack){
   if(!bossFight||bossFight.phase!=='active')return;
-  const amount=25*bossFight.remaining*(.5**attack.depth);clearBossActors();bossPhase('retry',950);playSound('boss-fail');
+  const amount=27.5*bossFight.remaining*(.5**attack.depth);clearBossActors();bossPhase('retry',950);playSound('boss-fail');
   dealDamage(amount,t(`Split stage ${attack.depth} missed`,`분열 ${attack.depth}단계 누락`),true,'boss');
 }
 function finishBoss(){
@@ -737,6 +774,8 @@ function updateBoss(delta){
     else if(fight.phase==='reaction'){
       const progress=Math.max(0,(fight.phaseUntil-fxClock)/fight.reactionDuration);$('reaction-fill').style.width=(100*progress)+'%';$('reaction-meter').setAttribute('aria-valuenow',Math.round(100*progress));
       if(fxClock>=fight.phaseUntil)failDomain();
+    }else if(fight.phase==='telegraph'){
+      updateDestroyPreview();if(fxClock>=fight.phaseUntil)launchDestroyWave();
     }else if(fight.phase==='rebound'&&fxClock>=fight.phaseUntil)BOSS_TYPES[fight.kind].start(fight.nextDir);
     else if(fight.phase==='retry'&&fxClock>=fight.phaseUntil)startDestroyRound();
     else if(['failed','finisher'].includes(fight.phase)&&fxClock>=fight.phaseUntil)resumeRegularAfterBoss();
@@ -772,52 +811,40 @@ function updateSkillHUD() {
   const config=SKILLS[selectedSkill],ready=charge>=config.cost;
   $('skill-name').textContent=config.name;
   $('skill-key').textContent=selectedSkill!=='proxy'?t('Space / lane swipe','Space / 라인 스와이프'):t('Shift + direction / lane swipe','Shift + 방향 / 라인 스와이프');
-  $('skill').disabled=mode!=='running'||!ready;$('skill').dataset.ready=String(ready);
+  $('skill').disabled=mode!=='running'||!ready||!!bossFight;$('skill').dataset.ready=String(ready&&!bossFight&&mode==='running');
   $('skill').setAttribute('aria-label',config.name+t(' skill',' 스킬')+(ready?t(' ready',' 준비'):t(' charging',' 충전 중')));
   $('skill-meter').setAttribute('aria-valuemax',config.cost);$('skill-meter').setAttribute('aria-valuenow',charge);
   $('skill-fill').style.width=(100*charge/config.cost)+'%';
-  $('skill-status').textContent=proxyArmed?t('Tap a lane to use Proxy.','사용할 방향을 터치하세요.'):ready?t('Ready','준비 완료'):t(`Eliminate to charge · ${charge}/${config.cost}`,`처치로 충전 · ${charge}/${config.cost}`);
+  $('skill-status').textContent=(mode==='over'||mode==='cleared')?t('Choose a skill, then Retry','스킬을 고른 뒤 재도전하세요'):bossFight?t('Skills locked during boss encounter','보스전 중 스킬 잠금'):proxyArmed?t('Tap a lane to use Proxy.','사용할 방향을 터치하세요.'):ready?t('Ready','준비 완료'):t(`Eliminate to charge · ${charge}/${config.cost}`,`처치로 충전 · ${charge}/${config.cost}`);
   $('skill-glyph').setAttribute('d',selectedSkill==='decoy'?'M3 8H12L16 12H29V27H3Z M8 18H24':selectedSkill==='vaccine'?'M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22':'M3 7H21L29 16L21 25H3V7Z M9 11H19V21H9Z');
 }
 function selectSkill(skill) {
-  if(mode==='running'||mode==='paused')return;
+  if(mode==='running'||mode==='paused'||!Object.hasOwn(SKILLS,skill))return;
+  if(mode==='over'||mode==='cleared')retrySkill=skill;
   selectedSkill=skill;charge=0;
   for(const button of document.querySelectorAll('[data-skill]'))button.setAttribute('aria-pressed',String(button.dataset.skill===skill));
   updateSkillHUD();
 }
-function pushNearbyEnemies(){
-  let count=0;
-  for(const enemy of enemies){
-    renderEnemy(enemy);
-    if(enemy.state!=='moving'||clock<enemy.at||(enemy.hop&&clock<enemy.hop.until)||Math.abs(enemy.radius-TARGET_RADIUS)>42)continue;
-    const progress=Math.max(.1,(clock-enemy.at)/enemy.travel),velocity=Math.max(.02,(enemy.startRadius-TARGET_RADIUS)/enemy.travel*(enemy.kind==='worm'?2*progress:1));
-    const from=enemy.radius,to=Math.min(START_RADIUS,Math.max(TARGET_RADIUS+18,from+28));
-    const travel=Math.max(300,(to-TARGET_RADIUS)/velocity),arrival=reserveArrival(clock+160+travel);
-    enemy.startRadius=to;enemy.travel=travel;enemy.arrival=arrival;enemy.at=arrival-travel;delete enemy.hop;
-    enemy.push={at:clock,until:clock+160,from,to};count++;
-  }
-  return count;
-}
 function activateSkill(dir=null) {
   if(mode!=='running')return false;
+  if(bossFight){showMessage(t('Skills locked during boss encounter','보스전 중 스킬 잠금'));return false;}
   const config=SKILLS[selectedSkill];
   if(charge<config.cost){showMessage(t('Skill charging','스킬 충전 중'));return false;}
-  if(selectedSkill==='proxy'&&bossFight&&bossFight.phase!=='draining'){showMessage(t('Bosses must be parried directly.','보스는 직접 패링해야 합니다.'));return false;}
   if(selectedSkill==='proxy'&&!DIRECTIONS[dir]){proxyArmed=!proxyArmed;$('arena').dataset.armed=String(proxyArmed);updateSkillHUD();return false;}
   charge=0;proxyArmed=false;$('arena').dataset.armed='false';
   if(selectedSkill==='vaccine') {
     vulnerability=Math.max(0,vulnerability-config.heal);recoveryUntil=clock+800;$('vulnerability-fill').dataset.recovering='true';
     const ring=svg('circle',{cx:240,cy:240,r:36,fill:'none',stroke:'#b7eaaa','stroke-width':2});
     addTimedEffect(ring,550,t=>{ring.setAttribute('r',36+t*155);ring.setAttribute('opacity',1-t);},true);
-    const pushed=pushNearbyEnemies();playSound('vaccine');
-    showMessage(t(`Vaccine / −24 pp · ${pushed} pushed back`,`백신 / 취약률 −24% · ${pushed}체 밀쳐냄`));
+    vaccineSlowAt=fxClock;playSound('vaccine');
+    showMessage(t('Vaccine / −29 pp · field slow 0.5s','백신 / 취약률 −29%p · 필드 둔화 0.5초'));
   } else if(selectedSkill==='proxy') {
     let removed=0;
-    for(const enemy of [...enemies].filter(e=>targetDirection(e)===dir)){
+    for(const enemy of [...enemies].filter(e=>targetDirection(e)===dir||(e.kind==='phishing'&&e.dir===dir))){
       if(enemy.spawned)shatterEnemy(contactEnemy(enemy),false);
       if(removeEnemy(enemy)&&enemy.kind!=='echo')removed++;
     }
-    score+=removed;rememberBest();checkUnlocks();proxyUntil[dir]=clock+config.duration;
+    proxyUntil[dir]=clock+config.duration;score+=removed;rememberBest();checkUnlocks();
     addEffect(dir,'perfect');playSound('proxy');showMessage(t('Proxy / lane cleared and blocked','프록시 / 경로 정리·생성 차단'),'#9ccbe1');
   } else {
     decoyCapacity=config.capacity;playSound('decoy');glitchAt(272,267,18,'decoy');showMessage(t('Decoy / shield reset to 50','미끼폴더 / 수용률 50% 설정'),'#9ccbe1');
@@ -853,7 +880,8 @@ function updateLaneStates() {
 function step(delta) {
   if(mode!=='running')return;
   fxClock+=delta;
-  const scale=bossFight?.phase==='reaction'?.045:bossFight?.phase==='finisher'?.12:1;
+  const progress=Math.min(1,Math.max(0,(fxClock-vaccineSlowAt-delta/2)/500));
+  const scale=bossFight?.phase==='reaction'?.045:bossFight?.phase==='finisher'?.12:1-(1-progress)**3;
   clock+=delta*scale;
   if(messageUntil&&clock>messageUntil){$('message').textContent='';messageUntil=0;}
   if(!bossFight&&clock>=nextSpawn)scheduleRegular();
@@ -881,7 +909,7 @@ function loop(now) {
   if (mode === 'running') frame = requestAnimationFrame(loop);
 }
 $('action').addEventListener('click',()=>{
-  if($('help-dialog').open)return;
+  if(($('help-dialog').open||$('patch-dialog').open))return;
   if (mode==='running') pauseGame(); else if (mode==='paused') resumeGame(); else replayRun();
 });
 if($('next-stage'))$('next-stage').addEventListener('click',advanceStage);
@@ -918,7 +946,7 @@ $('skill').addEventListener('click',()=>activateSkill());
 // Native keyboard/assistive-technology activation of each direction button.
 for (const button of document.querySelectorAll('[data-dir]')) button.addEventListener('click',event=>{if(event.detail===0){if(proxyArmed)activateSkill(button.dataset.dir);else parry(button.dataset.dir);}});
 document.addEventListener('keydown',event=>{
-  if ($('help-dialog').open) return;
+  if (($('help-dialog').open||$('patch-dialog').open)) return;
   if($('game-view')?.hidden)return;
   if(event.code==='Escape'&&$('game-shell').classList.contains('expanded')){event.preventDefault();leaveFullscreen();return;}
   if (event.target.closest('input,textarea,select,[contenteditable]') || event.ctrlKey || event.metaKey || event.altKey) return;
@@ -945,8 +973,8 @@ document.addEventListener('keydown',unlockAudio,{capture:true});
 $('sound-toggle').addEventListener('click',()=>{soundEnabled=!soundEnabled;try{localStorage.setItem('neon-parry-sound',soundEnabled?'on':'off');}catch{}updateSoundButton();if(soundEnabled){unlockAudio();playSound('start');}else silenceSound();});
 
 const HELP={
-en:`<h3>01 / Parry</h3><p>Use <kbd>↑ ← ↓ →</kbd> or <kbd>W A S D</kbd>. On touch screens, tap the incoming enemy’s lane anywhere in that quarter of the arena.</p><p>Parry when the enemy lights up between the lane’s short timing marks. A full inner gauge means it has reached the thin circular timing ring: a perfect parry reduces vulnerability by <b>4 percentage points</b>. Early or late parries inside the window still block the attack.</p><p>An empty parry adds <b>4 points</b>. Enemies that reach the core deal damage. The game ends <b>above 100%</b> vulnerability. Normal attacks arrive in sequence; boss fragments can follow much faster. Speed and frequency increase over time.</p><h3>02 / Skills</h3><p>Choose a skill before starting or retrying. Eliminations charge the meter; use it when full. Swipe along a lane toward or away from the core, starting in that lane. Sideways swipes do not activate skills.</p><ul><li><b>Vaccine · 20 charges:</b> heal 24 points and push back ordinary enemies near the ring. Use Space, the skill button, or a lane swipe.</li><li><b>Proxy · 16 charges:</b> clear one lane and block spawns there for 5 seconds. Use Shift + arrow/WASD, swipe that lane, or tap the skill button then a lane. Proxy eliminations give no charge. Bosses must be parried directly.</li><li><b>Decoy · 24 charges:</b> create a 50-point shield. Use Space, the skill button, or a lane swipe. The hit that breaks it never spills over to the core. Reusing resets it to 50; shields do not stack. Absorbing ransomware also heals the core by 10 points and prevents its lock.</li></ul><h3>03 / Threats</h3><ul><li><b>Virus / DDoS (from 3 eliminations):</b> 14 / 24 points of damage.</li><li><b>Trojan (8):</b> hidden on another enemy. Parry its host and it escapes to another lane: block it again or take 34 damage. A missed host instead triggers an extra 8-point hit.</li><li><b>Worm (15):</b> waits mid-lane with a counter. Each elimination in its lane lowers it; at zero it charges. Damage: 30. A perfect parry heals 20 points.</li><li><b>Ransomware (25):</b> fast; 8 damage and a 1.2-second lane lock.</li><li><b>Phishing (40):</b> the first enemy is a decoy. When it enters the parry window, the real target appears faintly on the opposite lane, linked to the decoy. Parry that target; the decoy cannot be destroyed. A miss deals 40 damage.</li></ul><h3>04 / Bosses</h3><p>At 100, 200, 300… eliminations, spawns stop until all remaining threats are cleared. A warning introduces one randomly selected boss; repeats are possible.</p><ul><li><b>Fake Domain:</b> parry the fake, then quickly hit the revealed target in another lane during slow motion. Five rounds; the final round requires all three other lanes. One failure ends the encounter and deals 20 damage per remaining attempt.</li><li><b>Dis-Troy:</b> parry 1 → 2 → 4 fragments across random lanes. Clear all seven to remove one of four attempts and heal 25 points. A missed fragment deals damage based on the remaining attempts and split stage, then restarts that round.</li></ul><h3>05 / Screen & pause</h3><p>Escape pauses or resumes. Opening this guide, leaving the tab, or losing focus pauses play; resume with the button. Full screen keeps the arena square. If your browser or embed blocks native full screen, the game fills its available frame instead. On itch.io, use the player’s full-screen control to expand the frame.</p><p>Language, sound, and best score are stored in this browser when storage is available. Private browsing or embedded-player restrictions may prevent saving. No account or network connection is needed to play.</p>`,
-ko:`<h3>01 / 패링</h3><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd>를 사용하세요. 터치 화면에서는 플레이 영역을 네 구역으로 나누어 적이 오는 방향의 구역을 누릅니다.</p><p>적이 라인의 짧은 눈금 사이에서 밝아지면 방어할 수 있습니다. 내부 게이지가 꽉 차고 얇은 원형 판정선에 닿을 때 정확히 맞추면 취약률이 <b>4퍼센트포인트</b> 회복됩니다. 조금 빠르거나 늦어도 방어 범위 안이면 피해 없이 막습니다.</p><p>막을 적이 없는 방향을 누르면 취약률이 <b>4포인트</b> 오릅니다. 적이 코어에 닿으면 피해를 받고, 취약률이 <b>100%를 넘으면</b> 종료됩니다. 일반 공격은 순서대로 도착하며 보스 분열체는 더 빠르게 이어집니다. 시간이 지날수록 속도와 등장 빈도가 증가합니다.</p><h3>02 / 스킬</h3><p>시작·재도전 전에 하나를 선택하세요. 적을 제거해 게이지를 채운 뒤 사용합니다. 스와이프는 사용할 라인에서 시작해 코어 쪽이나 바깥쪽으로 합니다. 라인을 가로지르는 스와이프는 발동하지 않습니다.</p><ul><li><b>백신 · 충전 20:</b> 취약률 24포인트 회복, 판정선 근처 일반 적 밀쳐내기. Space·스킬 버튼·라인 스와이프로 사용합니다.</li><li><b>프록시 · 충전 16:</b> 한 라인의 적을 모두 지우고 5초간 생성을 막습니다. Shift + 방향키/WASD·해당 라인 스와이프·스킬 버튼을 누른 뒤 방향 터치로 사용합니다. 프록시 처치는 충전하지 않으며 보스는 직접 패링해야 합니다.</li><li><b>미끼폴더 · 충전 24:</b> 50포인트 보호막을 생성합니다. Space·스킬 버튼·라인 스와이프로 사용합니다. 보호막을 파괴한 공격의 초과 피해는 코어에 전달되지 않습니다. 재사용하면 50으로 초기화되며 중첩되지 않습니다. 랜섬웨어를 흡수하면 코어 취약률이 10포인트 회복되고 방향 잠금도 막습니다.</li></ul><h3>03 / 위협</h3><ul><li><b>바이러스 / DDoS(3회부터):</b> 피격 시 각각 14 / 24포인트 피해.</li><li><b>트로이(8회):</b> 다른 적 안에 숨어 있습니다. 숙주를 막으면 다른 라인으로 탈출하며, 다시 막지 못하면 34포인트 피해를 줍니다. 숙주를 놓치면 대신 8포인트 추가 공격을 합니다.</li><li><b>웜(15회):</b> 라인 중간에서 카운트를 표시하며 기다립니다. 같은 라인에서 적을 제거할 때마다 줄어들고, 0이면 돌진합니다. 피해 30포인트, 정밀 패링 시 20포인트 회복.</li><li><b>랜섬웨어(25회):</b> 빠른 접근. 피해 8포인트와 해당 라인 1.2초 잠금.</li><li><b>피싱(40회):</b> 처음 보이는 적은 미끼입니다. 방어 범위에 들어오면 반대편에 연결선과 희미한 본체가 드러납니다. 미끼는 파괴할 수 없으니 본체를 막으세요. 실패 시 피해 40포인트.</li></ul><h3>04 / 보스</h3><p>제거 점수 100, 200, 300…마다 생성을 멈추고 남은 위협을 정리합니다. 이후 경고와 함께 보스 하나가 무작위로 등장합니다. 같은 보스가 연속으로 나올 수도 있습니다.</p><ul><li><b>페이크 도메인:</b> 가짜를 패링한 뒤 슬로 모션 중 다른 라인에 드러나는 본체를 빠르게 타격하세요. 총 5단계이며 마지막에는 나머지 세 라인을 모두 눌러야 합니다. 한 번 실패하면 보스가 이탈하고 남은 시도횟수당 20포인트 피해를 받습니다.</li><li><b>디스-트로이:</b> 무작위 방향의 분열체를 1 → 2 → 4 순서로 패링하세요. 일곱 개를 모두 막으면 시도횟수 4 중 하나가 줄고 취약률이 25포인트 회복됩니다. 놓친 분열체는 남은 시도횟수와 분열 단계에 따른 피해를 주며 해당 시도를 1개 패턴부터 재시도합니다.</li></ul><h3>05 / 화면·일시정지</h3><p>Escape로 정지·재개합니다. 도움말 열기·탭 전환·포커스 이탈 시 자동 정지되며 버튼으로 재개하세요. 전체화면에서도 플레이 영역은 정사각형을 유지합니다. 브라우저나 임베드가 전체화면을 허용하지 않으면 현재 프레임을 채웁니다. itch.io에서는 플레이어 자체의 전체화면 버튼으로 프레임을 확장할 수 있습니다.</p><p>언어·소리·최고 기록은 저장이 허용되는 경우 현재 브라우저에 보관합니다. 비공개 탐색이나 임베드 제한으로 저장되지 않을 수 있습니다. 플레이에 계정이나 네트워크 연결은 필요하지 않습니다.</p>`};
+en:`<h3>01 / Parry</h3><p>Use <kbd>↑ ← ↓ →</kbd> or <kbd>W A S D</kbd>. On touch screens, tap the incoming enemy’s lane anywhere in that quarter of the arena.</p><p>Parry when the enemy lights up between the lane’s short timing marks. A full inner gauge means it has reached the thin circular timing ring: a perfect parry reduces vulnerability by <b>4 percentage points</b>. Early or late parries inside the window still block the attack.</p><p>An empty parry adds <b>4 points</b>. Enemies that reach the core deal damage. The game ends <b>above 100%</b> vulnerability. Normal attacks arrive in sequence; boss fragments can follow much faster. Speed and frequency increase over time.</p><h3>02 / Skills</h3><p>Choose a skill before starting or retrying. Eliminations charge the meter; use it when full. Swipe along a lane toward or away from the core, starting in that lane. Sideways swipes do not activate skills.</p><ul><li><b>Vaccine · 20 charges:</b> heal 29 points and slow the whole field for 0.5 seconds, recovering quickly from a full stop. No knockback. Use Space, the skill button, or a lane swipe.</li><li><b>Proxy · 16 charges:</b> clear one lane and block spawns there for 6 seconds. Dormant worms and either side of phishing are also cleared. Use Shift + arrow/WASD, swipe that lane, or tap the skill button then a lane. Proxy eliminations give no charge. All skills are locked from boss entry until the encounter ends. Entry clears Vaccine slow and Proxy barriers; an existing Decoy shield remains.</li><li><b>Decoy · 24 charges:</b> create a 50-point shield. Use Space, the skill button, or a lane swipe. The hit that breaks it never spills over to the core. Reusing resets it to 50; shields do not stack. Absorbing ransomware also heals the core by 10 points and prevents its lock.</li></ul><h3>03 / Threats</h3><ul><li><b>Virus / DDoS (from 3 eliminations):</b> 14 / 24 points of damage.</li><li><b>Trojan (8):</b> hidden on another enemy. Parry its host and it escapes to another lane: block it again or take 34 damage. A missed host instead triggers an extra 8-point hit.</li><li><b>Worm (15):</b> waits mid-lane with a counter. Each elimination in its lane lowers it; at zero it charges. Damage: 30. A perfect parry heals 20 points.</li><li><b>Ransomware (25):</b> fast; 8 damage and a 1.2-second lane lock.</li><li><b>Phishing (40):</b> the first enemy is a decoy. When it enters the parry window, the real target appears faintly on the opposite lane, linked to the decoy. Parry that target; the decoy cannot be destroyed. A miss deals 40 damage.</li></ul><h3>04 / Bosses</h3><p>At 100, 200, 300… eliminations, spawns stop until all remaining threats are cleared. A warning introduces one randomly selected boss; repeats are possible.</p><ul><li><b>Fake Domain:</b> parry the fake, then follow the numbered targets across the other three lanes during slow motion. Rounds 1–4 require 1 → 2 → 3; the final round requires 1 → 9, with three numbers per lane. Wrong inputs add 4 points without resetting progress. Beat the deadline to heal 5 points per round; timeout deals 20 damage per remaining attempt.</li><li><b>Dis-Troy:</b> watch the lanes flash in spawn order before each split, then parry 1 → 2 → 4 fragments. Clear all seven to remove one of four attempts and heal 20 points. Miss damage is 27.5 × remaining attempts × 0.5^split depth (before difficulty scaling); a miss restarts the round.</li></ul><h3>05 / Screen & pause</h3><p>Escape pauses or resumes. Opening this guide, leaving the tab, or losing focus pauses play; resume with the button. Full screen keeps the arena square. If your browser or embed blocks native full screen, the game fills its available frame instead. On itch.io, use the player’s full-screen control to expand the frame.</p><p>Language, sound, and best score are stored in this browser when storage is available. Private browsing or embedded-player restrictions may prevent saving. No account or network connection is needed to play.</p>`,
+ko:`<h3>01 / 패링</h3><p><kbd>↑ ← ↓ →</kbd> 또는 <kbd>W A S D</kbd>를 사용하세요. 터치 화면에서는 플레이 영역을 네 구역으로 나누어 적이 오는 방향의 구역을 누릅니다.</p><p>적이 라인의 짧은 눈금 사이에서 밝아지면 방어할 수 있습니다. 내부 게이지가 꽉 차고 얇은 원형 판정선에 닿을 때 정확히 맞추면 취약률이 <b>4퍼센트포인트</b> 회복됩니다. 조금 빠르거나 늦어도 방어 범위 안이면 피해 없이 막습니다.</p><p>막을 적이 없는 방향을 누르면 취약률이 <b>4포인트</b> 오릅니다. 적이 코어에 닿으면 피해를 받고, 취약률이 <b>100%를 넘으면</b> 종료됩니다. 일반 공격은 순서대로 도착하며 보스 분열체는 더 빠르게 이어집니다. 시간이 지날수록 속도와 등장 빈도가 증가합니다.</p><h3>02 / 스킬</h3><p>시작·재도전 전에 하나를 선택하세요. 적을 제거해 게이지를 채운 뒤 사용합니다. 스와이프는 사용할 라인에서 시작해 코어 쪽이나 바깥쪽으로 합니다. 라인을 가로지르는 스와이프는 발동하지 않습니다.</p><ul><li><b>백신 · 충전 20:</b> 취약률 29포인트 회복, 0.5초간 필드 전체가 정지에서 정상 속도로 빠르게 복구됩니다. 넉백은 없습니다. Space·스킬 버튼·라인 스와이프로 사용합니다.</li><li><b>프록시 · 충전 16:</b> 한 라인의 적을 모두 지우고 6초간 생성을 막습니다. 대기 웜과 미끼·본체 피싱도 제거합니다. Shift + 방향키/WASD·해당 라인 스와이프·스킬 버튼을 누른 뒤 방향 터치로 사용합니다. 프록시 처치는 충전하지 않으며 보스 진입부터 종료까지 모든 스킬이 잠깁니다. 진입 시 백신 둔화·프록시 장벽은 사라지고 미끼폴더는 유지됩니다.</li><li><b>미끼폴더 · 충전 24:</b> 50포인트 보호막을 생성합니다. Space·스킬 버튼·라인 스와이프로 사용합니다. 보호막을 파괴한 공격의 초과 피해는 코어에 전달되지 않습니다. 재사용하면 50으로 초기화되며 중첩되지 않습니다. 랜섬웨어를 흡수하면 코어 취약률이 10포인트 회복되고 방향 잠금도 막습니다.</li></ul><h3>03 / 위협</h3><ul><li><b>바이러스 / DDoS(3회부터):</b> 피격 시 각각 14 / 24포인트 피해.</li><li><b>트로이(8회):</b> 다른 적 안에 숨어 있습니다. 숙주를 막으면 다른 라인으로 탈출하며, 다시 막지 못하면 34포인트 피해를 줍니다. 숙주를 놓치면 대신 8포인트 추가 공격을 합니다.</li><li><b>웜(15회):</b> 라인 중간에서 카운트를 표시하며 기다립니다. 같은 라인에서 적을 제거할 때마다 줄어들고, 0이면 돌진합니다. 피해 30포인트, 정밀 패링 시 20포인트 회복.</li><li><b>랜섬웨어(25회):</b> 빠른 접근. 피해 8포인트와 해당 라인 1.2초 잠금.</li><li><b>피싱(40회):</b> 처음 보이는 적은 미끼입니다. 방어 범위에 들어오면 반대편에 연결선과 희미한 본체가 드러납니다. 미끼는 파괴할 수 없으니 본체를 막으세요. 실패 시 피해 40포인트.</li></ul><h3>04 / 보스</h3><p>제거 점수 100, 200, 300…마다 생성을 멈추고 남은 위협을 정리합니다. 이후 경고와 함께 보스 하나가 무작위로 등장합니다. 같은 보스가 연속으로 나올 수도 있습니다.</p><ul><li><b>페이크 도메인:</b> 가짜를 패링한 뒤 나머지 세 라인의 숫자를 순서대로 누르세요. 일반 패턴은 1→3, 마지막은 라인마다 3개씩 배정된 숫자 1→9를 누릅니다. 오입력은 4포인트 피해만 주고 진행은 유지됩니다. 성공마다 5포인트 회복, 시간 초과 시 남은 시도횟수당 20포인트 피해를 받습니다.</li><li><b>디스-트로이:</b> 분열 전에 라인이 생성 순서대로 빛납니다. 이후 1→2→4 분열체를 막으면 시도횟수가 하나 줄고 20포인트 회복됩니다. 실패 피해는 27.5×남은 시도횟수×0.5^분열 단계이며 난이도 배율이 추가됩니다. 놓치면 해당 시도를 처음부터 재시도합니다.</li></ul><h3>05 / 화면·일시정지</h3><p>Escape로 정지·재개합니다. 도움말 열기·탭 전환·포커스 이탈 시 자동 정지되며 버튼으로 재개하세요. 전체화면에서도 플레이 영역은 정사각형을 유지합니다. 브라우저나 임베드가 전체화면을 허용하지 않으면 현재 프레임을 채웁니다. itch.io에서는 플레이어 자체의 전체화면 버튼으로 프레임을 확장할 수 있습니다.</p><p>언어·소리·최고 기록은 저장이 허용되는 경우 현재 브라우저에 보관합니다. 비공개 탐색이나 임베드 제한으로 저장되지 않을 수 있습니다. 플레이에 계정이나 네트워크 연결은 필요하지 않습니다.</p>`};
 HELP.en='<h3>Menu</h3><p>Play → mode → difficulty → ability → Start. In Stage mode, choose a stage before your ability. Back returns to the previous screen.</p><p>Each difficulty has five stages: 15, 30, 45, 65, and 100 eliminations. Stage 5 also requires defeating a boss. Easy Endless uses the original settings. Higher difficulties increase speed and damage and narrow the parry window. Damage numbers below are for Easy.</p><p>Settings: language, sound, full screen. During play, Menu pauses the game. Resume continues it; starting a new game resets it.</p>'+HELP.en;
 HELP.ko='<h3>메뉴</h3><p>Play → 모드 → 난이도 → 능력 → 시작. 스테이지 모드는 능력 선택 전에 스테이지를 고릅니다. 뒤로 버튼으로 이전 화면에 돌아갑니다.</p><p>스테이지 목표는 순서대로 15·30·45·65·100회 방어입니다. 5번은 보스까지 처치해야 끝납니다. 쉬움 무한 모드는 기존 설정입니다. 난이도가 높아지면 속도와 피해가 늘고 패링 범위가 좁아집니다. 아래 피해 수치는 쉬움 기준입니다.</p><p>Settings에서 언어, 효과음, 전체화면을 바꿉니다. 게임 중 메뉴를 누르면 일시정지됩니다. 이어하기는 현재 게임을 계속하고, 새 게임을 시작하면 초기화됩니다.</p>'+HELP.ko;
 function refreshLanguage(){

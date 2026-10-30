@@ -1,9 +1,12 @@
 # Neon Parry
 
-이제 이 저장소의 업데이트 기준은 첨부한 **Neon-Parry-Source.zip의 Electron 1.0.0 소스**입니다. 단일 HTML 버전이 아니라 `src/` 아래의 분리된 소스를 수정합니다. 게임 원본 파일은 가져온 내용 그대로 유지했습니다.
+**현재 버전: 1.0.1 — [패치노트](CHANGELOG.md)**
+
+이 저장소의 업데이트 기준은 첨부한 **Neon-Parry-Source.zip의 Electron 1.0.0 소스**입니다. 단일 HTML 버전이 아니라 `src/` 아래의 분리된 소스를 수정합니다. 원본 ZIP은 보존하고, 이후 수정은 아래 패치노트에 기록합니다.
 
 - [게임 실행](https://qqock2e.github.io/NeonParry/)
 - [최신 itch.io 웹 ZIP](https://qqock2e.github.io/NeonParry/NeonParry-itch.zip)
+- [패치노트](CHANGELOG.md) — 게임 메인 화면에서도 확인 가능
 - [소스 분석·이전 내역·모바일 가능 여부](docs/SOURCE_ANALYSIS.md)
 - [첨부 원본 소스 ZIP](imports/Neon-Parry-Source.zip) / [SHA-256 매니페스트](imports/source-manifest.json)
 - 이전 버전: `legacy/single-file/` 및 Git 이력의 `6919381`
@@ -19,7 +22,7 @@
 | `src/renderer/js/desktop.js` | Electron용 전체화면·클립보드 연결; 브라우저에서는 비활성 |
 | `src/main/main.cjs`, `preload.cjs` | Electron 앱 창·로컬 파일 제공·제한된 IPC |
 | `build/` | Windows/macOS 패키징 설정과 아이콘 |
-| `tests/` | 첨부 소스의 Node 테스트 48개 |
+| `tests/` | 게임·보스·스킬·메뉴·데스크톱 연결 테스트 |
 | `scripts/package_itch.py` | 렌더러와 모든 웹 자산을 ZIP에 패키징 |
 | `README.txt` | 첨부 소스에 포함된 원본 안내문 |
 

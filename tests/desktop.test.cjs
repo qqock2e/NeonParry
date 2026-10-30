@@ -294,7 +294,7 @@ function rendererHarness(initialFullscreen = false) {
     }
     closest() { return null; }
   }
-  const nodes = Object.fromEntries(['fullscreen', 'game-shell', 'share', 'language', 'help-dialog'].map(id => [id, new Node()]));
+  const nodes = Object.fromEntries(['fullscreen', 'game-shell', 'share', 'language', 'help-dialog', 'patch-dialog'].map(id => [id, new Node()]));
   const body = new Node();
   const window = new Node();
   const commands = [];

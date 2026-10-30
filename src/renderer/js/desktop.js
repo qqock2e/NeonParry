@@ -22,7 +22,7 @@
 
   window.addEventListener('keydown', event => {
     if (event.code !== 'Escape' || event.repeat || !nativeFullscreen) return;
-    if (document.getElementById('help-dialog').open) return;
+    if ((document.getElementById('help-dialog').open||document.getElementById('patch-dialog').open)) return;
     if (event.target.closest('input,textarea,select,[contenteditable]')) return;
     event.preventDefault();
     event.stopImmediatePropagation();

@@ -5,12 +5,12 @@ let menuScreen = 'home';
 const MENU_SKILLS = {
   vaccine: {
     name: ['Vaccine', '백신'],
-    description: ['Recover 24 vulnerability points and push nearby enemies back.', '취약률을 24 회복하고 가까운 적을 밀어냅니다.'],
+    description: ['Recover 29 vulnerability points and slow the field for 0.5 seconds.', '취약률을 29 회복하고 필드를 0.5초간 둔화합니다.'],
     control: ['Space / ability button / lane swipe', 'Space / 능력 버튼 / 라인 스와이프']
   },
   proxy: {
     name: ['Proxy', '프록시'],
-    description: ['Clear one lane and block new enemies there for 5 seconds.', '한 방향의 적을 지우고 5초 동안 새 적을 막습니다.'],
+    description: ['Clear one lane and block new enemies there for 6 seconds, including dormant worms and either side of phishing.', '한 방향의 적을 지우고 6초 동안 새 적을 막습니다. 대기 웜·양쪽 피싱도 제거합니다.'],
     control: ['Shift + direction / ability button, then direction / lane swipe', 'Shift + 방향 / 능력 버튼 누른 뒤 방향 / 라인 스와이프']
   },
   decoy: {
@@ -31,6 +31,7 @@ function menuStageGoal(stage) {
 }
 
 function refreshMenu() {
+  refreshPatchNotes();
   const selection = runSelection;
   const titles = {
     home: 'NEON PARRY',
@@ -182,7 +183,7 @@ $('menu-open').addEventListener('click', returnToMenu);
 $('menu-start').addEventListener('click', launchRun);
 $('menu-resume').addEventListener('click', continueRun);
 document.addEventListener('keydown', event => {
-  if ($('main-menu').hidden || $('help-dialog').open || event.code !== 'Escape' || event.repeat) return;
+  if ($('main-menu').hidden || ($('help-dialog').open||$('patch-dialog').open) || event.code !== 'Escape' || event.repeat) return;
   if (event.ctrlKey || event.metaKey || event.altKey || event.target.closest('input,textarea,select,[contenteditable]')) return;
   if (document.fullscreenElement || $('game-shell').classList.contains('expanded')) {
     event.preventDefault();
@@ -195,3 +196,12 @@ document.addEventListener('keydown', event => {
   }
 });
 showMenuView();
+
+function refreshPatchNotes(){
+  $('patch-open').textContent=t('Patch notes · 1.0.1','패치노트 · 1.0.1');$('patch-title').textContent=$('patch-open').textContent;$('patch-close').textContent=t('Close ×','닫기 ×');
+  $('patch-content').innerHTML=t(
+    '<h3>Skills</h3><ul><li>Vaccine: 29-point heal, no knockback. Whole-field 0.5s slow, recovering rapidly from zero movement.</li><li>Proxy: 6s barrier. Clears dormant worms and phishing through either its decoy or real-target lane.</li><li>All skills locked throughout boss encounters, including entry cleanup. Entry clears Vaccine slow and Proxy barriers; existing Decoy shields remain.</li></ul><h3>Bosses</h3><ul><li>Fake Domain: numbered targets in all three other lanes. Follow 1–3; final round 1–9 with three numbers per lane. Wrong inputs add 4 points but preserve progress. Round success heals 5 points. Easy deadlines: 2.4 / 2.2 / 2.0 / 1.8 / 6.0 seconds; higher difficulties shorten these.</li><li>Dis-Troy: lanes preview split spawn order before fragments appear. Miss damage +10% (base 27.5 × remaining attempts × 0.5^depth); successful round healing 25 → 20 points.</li></ul><h3>Retry</h3><p>Choose any skill directly on the game-over or stage-clear screen, then Retry. Mode, stage and difficulty remain unchanged. The selected skill also carries to Next stage.</p>',
+    '<h3>스킬</h3><ul><li>백신: 회복 24→29%p, 넉백 삭제. 0.5초간 필드 전체가 정지에서 정상 속도로 빠르게 복구됩니다.</li><li>프록시: 장벽 5→6초. 대기 웜 및 피싱의 미끼·본체 어느 쪽 라인에서도 제거할 수 있습니다.</li><li>보스 진입 정리부터 종료까지 모든 스킬 잠금. 진입 시 백신 둔화·프록시 장벽 제거, 미끼폴더 보호막 유지.</li></ul><h3>보스</h3><ul><li>페이크 도메인: 나머지 세 라인의 숫자 1→3 순서로 패링. 마지막은 라인당 3개씩 배정된 숫자 1→9. 오입력은 취약률 +4%p이며 진행 유지, 성공마다 −5%p. 쉬움 제한시간은 2.4 / 2.2 / 2.0 / 1.8 / 6.0초이며 상위 난이도에서는 짧아집니다.</li><li>디스-트로이: 분열 생성 전에 라인이 생성 순서대로 빛납니다. 실패 피해 +10%(기본 27.5×남은 시도횟수×0.5^단계), 패턴 성공 회복 25→20%p.</li></ul><h3>재도전</h3><p>게임 종료·스테이지 클리어 화면에서 스킬을 바로 고르고 재도전하세요. 모드·난이도·스테이지는 유지됩니다. 다음 스테이지에도 선택한 스킬이 적용됩니다.</p>');
+}
+$('patch-open').addEventListener('click',()=>{pauseGame();pointers.clear();refreshPatchNotes();$('patch-dialog').showModal();});
+$('patch-close').addEventListener('click',()=>$('patch-dialog').close());

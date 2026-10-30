@@ -21,7 +21,7 @@ function winDomain(game) {
     startDomainRound('up');
     clock = bossFight.attacks[0].arrival; fxClock = clock;
     bossParry('up');
-    for (const dir of [...bossFight.mains.keys()]) { fxClock += 100; bossParry(dir); }
+    for (const dir of [...bossFight.sequence]) { fxClock += 100; bossParry(dir); }
     step(2000);
   `);
 }
@@ -347,13 +347,14 @@ test('original easy damage, perfect healing, and phishing reverse-lane rule rema
   assert.equal(game.run('vulnerability'), 0);
 });
 
-test('existing vaccine pushback and decoy shield behavior survive menu/loadout changes', () => {
+test('vaccine heals 29 without pushback and decoy shield behavior survives menu changes', () => {
   const game = createHarness();
   launch(game, { skill: 'vaccine' });
   game.run("vulnerability=48; charge=20; spawnEnemy('up',clock-1000,1000,'virus'); activateSkill();");
-  assert.equal(game.run('vulnerability'), 24);
+  assert.equal(game.run('vulnerability'), 19);
   assert.equal(game.run('charge'), 0);
-  assert.equal(game.run('!!enemies[0].push'), true);
+  assert.equal(game.run('!!enemies[0].push'), false);
+  assert.equal(game.run('vaccineSlowAt'), game.run('fxClock'));
   launch(game, { skill: 'decoy' });
   game.run("charge=24; activateSkill(); dealDamage(80,'test hit',true,'virus');");
   assert.equal(game.run('vulnerability'), 0, 'the shield-breaking attack cannot spill into the core');
@@ -363,4 +364,95 @@ test('existing vaccine pushback and decoy shield behavior survive menu/loadout c
   game.run("vulnerability=32; charge=24; activateSkill(); onImpact(spawnEnemy('left',clock,1000,'ransom'));");
   assert.equal(game.run('vulnerability'), 22);
   assert.equal(game.run('lockedUntil.left || 0'), 0, 'ransomware absorbed by a decoy cannot lock the lane');
+});
+
+test('vaccine slows all enemy timelines for 500 real active milliseconds without knockback', () => {
+  const game=createHarness();launch(game);
+  game.run("vulnerability=50;charge=20;spawnEnemy('up',0,2200,'virus');spawnEnemy('right',0,1900,'phishing');activateSkill();nextSpawn=Infinity;nextWorm=Infinity;");
+  const positions=game.plain('enemies.map(e=>({arrival:e.arrival,at:e.at,travel:e.travel}))');
+  game.run('step(25)');assert.ok(game.run('clock')<3);assert.equal(game.run('vulnerability'),21);
+  game.run('pauseGame();step(1000)');assert.equal(game.run('fxClock'),25);
+  game.run('resumeGame();for(let i=0;i<19;i++)step(25)');
+  assert.equal(game.run('fxClock'),500);assert.ok(game.run('clock')>370&&game.run('clock')<380);
+  assert.deepEqual(game.plain('enemies.map(e=>({arrival:e.arrival,at:e.at,travel:e.travel}))'),positions);
+  const before=game.run('clock');game.run('step(25)');assert.equal(game.run('clock')-before,25);
+});
+
+test('proxy removes dormant worms and phishing through either lane without charging',()=>{
+  for(const side of ['up','down']){
+    const game=createHarness();launch(game,{skill:'proxy'});
+    game.run(`charge=16;spawnWorm('${side}');spawnEnemy('up',clock,1900,'phishing');activateSkill('${side}');`);
+    assert.equal(game.run('enemies.length'),0);assert.equal(game.run('score'),2);assert.equal(game.run('charge'),0);
+    assert.equal(game.run(`proxyUntil.${side}-clock`),6000);
+  }
+});
+
+test('boss entry cancels slow/barriers and locks every skill throughout every boss phase',()=>{
+  for(const skill of ['vaccine','proxy','decoy']){
+    const game=createHarness();launch(game,{skill});
+    game.run('charge=SKILLS[selectedSkill].cost;decoyCapacity=35;vaccineSlowAt=fxClock;proxyUntil.up=clock+6000;score=100;maybeQueueBoss();');
+    assert.equal(game.run('vaccineSlowAt'),-Infinity);assert.deepEqual(game.plain('proxyUntil'),{});assert.equal(game.run('decoyCapacity'),35);
+    for(const phase of ['draining','warning','active','reaction','telegraph','retry','rebound','failed','finisher']){
+      game.run(`bossFight.phase='${phase}';updateSkillHUD();`);assert.equal(game.element('skill').disabled,true);
+      assert.equal(game.run("activateSkill('right')"),false);assert.equal(game.run('charge'),game.run('SKILLS[selectedSkill].cost'));
+    }
+    game.run('resumeRegularAfterBoss();');assert.equal(game.element('skill').disabled,false);
+  }
+  const game=createHarness();launch(game,{skill:'proxy'});
+  game.run("score=99;charge=16;spawnEnemy('up');activateSkill('up');");assert.ok(game.run('!!bossFight'));assert.deepEqual(game.plain('proxyUntil'),{});
+});
+
+function domainReaction(game,remaining=5){
+  game.run(`score=100;maybeQueueBoss();startBossWarning();bossFight.kind='domain';bossFight.remaining=${remaining};startDomainRound('up');clock=bossFight.attacks[0].arrival;fxClock=clock;bossParry('up');`);
+}
+test('domain ordinary rounds use all three numbered lanes; mistakes preserve sequence and deadline',()=>{
+  const game=createHarness();launch(game);domainReaction(game);
+  assert.equal(game.run('bossFight.mains.size'),3);assert.equal(game.run('bossFight.sequence.length'),3);
+  assert.equal(new Set(game.plain('bossFight.sequence')).size,3);assert.ok(!game.plain('bossFight.sequence').includes('up'));
+  const deadline=game.run('bossFight.phaseUntil');
+  game.run("fxClock+=100;bossParry('up');");assert.equal(game.run('vulnerability'),4);assert.equal(game.run('bossFight.sequenceIndex'),0);assert.equal(game.run('bossFight.phaseUntil'),deadline);
+  game.run('vulnerability=30;for(const dir of [...bossFight.sequence]){fxClock+=100;bossParry(dir);}');
+  assert.equal(game.run('bossFight.remaining'),4);assert.equal(game.run('bossFight.phase'),'rebound');assert.equal(game.run('vulnerability'),25);
+});
+
+test('domain final round uses nine ordered numbers, three per lane, and only timeout ends a failed encounter',()=>{
+  const game=createHarness();launch(game);domainReaction(game,1);
+  const seq=game.plain('bossFight.sequence');assert.equal(seq.length,9);
+  for(const dir of ['left','right','down'])assert.equal(seq.filter(d=>d===dir).length,3);
+  game.run('vulnerability=40;fxClock+=100;bossParry(bossFight.sequence[0]);');assert.equal(game.run('bossFight.mains.size'),3);
+  game.run('for(const dir of bossFight.sequence.slice(1)){fxClock+=100;bossParry(dir);}');
+  assert.equal(game.run('bossFight.phase'),'finisher');assert.equal(game.run('vulnerability'),35);
+  const missed=createHarness();launch(missed);domainReaction(missed,2);
+  missed.run('fxClock=bossFight.phaseUntil;step(0);');assert.equal(missed.run('bossFight.phase'),'failed');assert.equal(missed.run('vulnerability'),40);
+});
+
+test('destroy previews all spawn lanes in order before launching its staggered fragments',()=>{
+  const game=createHarness();launch(game);
+  game.run("score=100;maybeQueueBoss();startBossWarning();bossFight.kind='destroy';bossFight.remaining=4;startDestroyRound('up');clock=bossFight.attacks[0].arrival;fxClock=clock;bossParry('up');");
+  assert.equal(game.run('bossFight.phase'),'telegraph');assert.equal(game.run('bossFight.attacks.length'),0);
+  const planned=game.plain('bossFight.wavePlan');assert.equal(planned.length,2);assert.notEqual(planned[0],planned[1]);
+  game.run('fxClock+=bossFight.previewInterval;updateBoss(0);');
+  assert.equal(game.run('bossFight.previewNodes[1].getAttribute("opacity")'),'0.75');
+  game.run('fxClock=bossFight.phaseUntil;updateBoss(0);');assert.equal(game.run('bossFight.phase'),'active');
+  assert.deepEqual(game.plain('bossFight.attacks.map(a=>a.dir)'),planned);
+  assert.equal(game.run('bossFight.attacks[1].arrival-bossFight.attacks[0].arrival'),220);
+  game.run('vulnerability=50;bossFight.depth=2;bossFight.attacks=[];resolveDestroyHit();');assert.equal(game.run('vulnerability'),30);
+  game.run("bossFight.remaining=4;bossPhase('active');missDestroy({depth:2});");assert.equal(game.run('vulnerability'),57.5);
+});
+
+test('result screen skill selection changes retry loadout while preserving run and next-stage context',()=>{
+  for(const mode of ['stage','endless']){
+    const game=createHarness();launch(game,{mode,difficulty:'hard',stage:3,skill:'vaccine'});game.run('gameOver();');
+    assert.equal(game.element('skill-choices').hidden,false);game.element('skill-choices').querySelector('[data-skill="proxy"]').click();
+    game.run('replayRun();');assert.deepEqual(game.plain('({mode:activeRun.mode,difficulty:activeRun.difficulty,stage:activeRun.stage,skill:activeRun.skill})'),{mode,difficulty:'hard',stage:3,skill:'proxy'});
+  }
+  const game=createHarness();launch(game,{mode:'stage'});game.run('score=15;completeStage();');
+  assert.equal(game.element('skill-choices').hidden,false);game.run("selectSkill('decoy');advanceStage();");assert.equal(game.run('activeRun.skill'),'decoy');assert.equal(game.run('activeRun.stage'),2);
+});
+
+test('home patch notes are bilingual modal content and Escape cannot resume through them',()=>{
+  const game=createHarness();game.element('patch-open').click();assert.equal(game.element('patch-dialog').open,true);
+  assert.ok(game.element('patch-content').innerHTML.includes('29-point'));
+  game.run("language='ko';refreshLanguage();");assert.ok(game.element('patch-open').textContent.includes('패치노트'));
+  game.element('patch-close').click();assert.equal(game.element('patch-dialog').open,false);
 });

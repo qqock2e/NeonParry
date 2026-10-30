@@ -2088,9 +2088,7 @@ dialog::backdrop {
   padding:10px 12px
 }
 
-#skill-choices {
-  display:none!important
-}
+
 
 @media(max-width:600px) {
   .menu-view {
@@ -2173,3 +2171,5 @@ dialog::backdrop {
     padding-bottom:0
   }
 }
+
+.patch-link{border:0;background:none;color:var(--muted);font:11px monospace;min-height:36px;padding:8px;justify-self:center}.patch-link:hover{color:var(--green)}#patch-content{font-size:13px;line-height:1.8;color:var(--muted)}#patch-content h3{color:var(--green);font-weight:500;font-size:14px;margin:20px 0 6px}#patch-content ul{padding-left:20px}#patch-content li{margin:8px 0}.domain-number{font:bold 20px monospace;fill:#ecf4df;text-anchor:middle;paint-order:stroke;stroke:#17221b;stroke-width:3px}.domain-queue{font:11px monospace;fill:#c6d4bd;text-anchor:middle;paint-order:stroke;stroke:#171a1b;stroke-width:3px}.boss-main-cross{opacity:.4}[data-next="true"] .boss-main{stroke:#b7eaaa;stroke-width:3;fill:#344a31}[data-next="true"] .domain-number{fill:#b7eaaa}[data-next="true"] .boss-main-cross{opacity:1}

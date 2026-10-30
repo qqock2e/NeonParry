@@ -31,6 +31,7 @@
         <button id="menu-play" class="menu-button primary">Play</button>
         <button id="help-open" class="menu-button" aria-haspopup="dialog">Help</button>
         <button id="menu-settings" class="menu-button">Settings</button>
+        <button id="patch-open" class="patch-link" aria-haspopup="dialog">Patch notes · 1.0.1</button>
       </div>
     </div>
     <div class="menu-screen" data-menu-screen="mode" hidden>
@@ -120,7 +121,7 @@
 <div class="boss-hud" id="boss-hud" hidden><span id="boss-name"></span><span class="boss-pips" id="boss-pips" data-i18n-label="a22" aria-label="Attempts remaining"></span></div>
 <div class="boss-banner" id="boss-banner" role="status" hidden><small id="boss-banner-tag"></small><strong id="boss-banner-title"></strong><p id="boss-banner-copy"></p></div>
 <div class="reaction-meter" id="reaction-meter" role="progressbar" data-i18n-label="a21" aria-label="Main Domain reaction time" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" hidden><div id="reaction-fill"></div></div><div class="boss-impact" aria-hidden="true"></div>
-<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title" data-i18n="s6">Protect the core</strong><p id="overlay-copy" data-i18n="s0">Parry in the incoming direction when the enemy lights up.<br>Hit the timing ring precisely to recover vulnerability.</p><div class="skill-choices" id="skill-choices" role="group" data-i18n-label="a19" aria-label="Choose a starting skill"><button class="skill-choice" data-skill="vaccine" aria-pressed="true" data-i18n="s3">＋ Vaccine<span>Heal &amp; push back</span></button><button class="skill-choice" data-skill="proxy" aria-pressed="false" data-i18n="s2">⇥ Proxy<span>Clear one lane</span></button><button class="skill-choice" data-skill="decoy" aria-pressed="false" data-i18n="s1">▱ Decoy<span>50-point shield</span></button></div></div>
+<div class="overlay" id="overlay"><span class="symbol" id="overlay-symbol" aria-hidden="true">⌖</span><strong id="overlay-title" data-i18n="s6">Protect the core</strong><p id="overlay-copy" data-i18n="s0">Parry in the incoming direction when the enemy lights up.<br>Hit the timing ring precisely to recover vulnerability.</p><div class="skill-choices" id="skill-choices" role="group" data-i18n-label="a19" aria-label="Choose a starting skill"><button class="skill-choice" data-skill="vaccine" aria-pressed="true" data-i18n="s3">＋ Vaccine<span>Heal &amp; slow</span></button><button class="skill-choice" data-skill="proxy" aria-pressed="false" data-i18n="s2">⇥ Proxy<span>Clear one lane</span></button><button class="skill-choice" data-skill="decoy" aria-pressed="false" data-i18n="s1">▱ Decoy<span>50-point shield</span></button></div></div>
 <div class="screen-glitch" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
 </div>
 <div class="legend" data-i18n-label="a17" aria-label="Unlocked threats"><span><i class="diamond" aria-hidden="true"></i><span data-i18n="Virus">Virus</span></span><span data-unlock="3" hidden><i class="dot" aria-hidden="true"></i>DDoS</span><span data-unlock="8" hidden><i class="hex" aria-hidden="true"></i><span data-i18n="Trojan">Trojan</span></span><span data-unlock="15" hidden><i class="worm-icon" aria-hidden="true"></i><span data-i18n="Worm">Worm</span></span><span data-unlock="25" hidden><i class="ransom-icon" aria-hidden="true"></i><span data-i18n="Ransomware">Ransomware</span></span><span data-unlock="40" hidden><i class="phish-icon" aria-hidden="true"></i><span data-i18n="Phishing">Phishing</span></span></div>
@@ -137,6 +138,7 @@
 </section><footer></footer>
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">How to play</h2><button id="help-close" class="tool-button" autofocus>Close ×</button></div><div id="help-content"></div></dialog>
+<dialog id="patch-dialog" aria-labelledby="patch-title"><div class="dialog-heading"><h2 id="patch-title">Patch notes · 1.0.1</h2><button id="patch-close" class="tool-button" autofocus>Close ×</button></div><div id="patch-content"></div></dialog>
 </main>
 <script src="js/game.js"></script>
 <script src="js/menu.js"></script>
