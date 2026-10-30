@@ -366,14 +366,14 @@ test('vaccine heals 29 without pushback and decoy shield behavior survives menu 
   assert.equal(game.run('lockedUntil.left || 0'), 0, 'ransomware absorbed by a decoy cannot lock the lane');
 });
 
-test('vaccine slows all enemy timelines for 500 real active milliseconds without knockback', () => {
+test('vaccine slows all enemy timelines for 1200 real active milliseconds without knockback', () => {
   const game=createHarness();launch(game);
   game.run("vulnerability=50;charge=20;spawnEnemy('up',0,2200,'virus');spawnEnemy('right',0,1900,'phishing');activateSkill();nextSpawn=Infinity;nextWorm=Infinity;");
   const positions=game.plain('enemies.map(e=>({arrival:e.arrival,at:e.at,travel:e.travel}))');
-  game.run('step(25)');assert.ok(game.run('clock')<3);assert.equal(game.run('vulnerability'),21);
+  game.run('step(25)');assert.equal(game.run('clock'),0);assert.equal(game.run('vulnerability'),21);
   game.run('pauseGame();step(1000)');assert.equal(game.run('fxClock'),25);
-  game.run('resumeGame();for(let i=0;i<19;i++)step(25)');
-  assert.equal(game.run('fxClock'),500);assert.ok(game.run('clock')>370&&game.run('clock')<380);
+  game.run('resumeGame();for(let i=0;i<47;i++)step(25)');
+  assert.equal(game.run('fxClock'),1200);assert.equal(game.run('clock'),300);
   assert.deepEqual(game.plain('enemies.map(e=>({arrival:e.arrival,at:e.at,travel:e.travel}))'),positions);
   const before=game.run('clock');game.run('step(25)');assert.equal(game.run('clock')-before,25);
 });
@@ -432,7 +432,10 @@ test('destroy previews all spawn lanes in order before launching its staggered f
   assert.equal(game.run('bossFight.phase'),'telegraph');assert.equal(game.run('bossFight.attacks.length'),0);
   const planned=game.plain('bossFight.wavePlan');assert.equal(planned.length,2);assert.notEqual(planned[0],planned[1]);
   game.run('fxClock+=bossFight.previewInterval;updateBoss(0);');
-  assert.equal(game.run('bossFight.previewNodes[1].getAttribute("opacity")'),'0.75');
+  assert.equal(game.run('bossFight.previewNodes[1].getAttribute("opacity")'),'1');
+  assert.equal(game.run('bossFight.previewNodes[1].querySelectorAll("lineargradient").length'),1);
+  game.run('fxClock+=50;updateBoss(0);');
+  assert.ok(Number(game.run('bossFight.previewNodes[1].getAttribute("opacity")'))<1);
   game.run('fxClock=bossFight.phaseUntil;updateBoss(0);');assert.equal(game.run('bossFight.phase'),'active');
   assert.deepEqual(game.plain('bossFight.attacks.map(a=>a.dir)'),planned);
   assert.equal(game.run('bossFight.attacks[1].arrival-bossFight.attacks[0].arrival'),220);
@@ -455,4 +458,15 @@ test('home patch notes are bilingual modal content and Escape cannot resume thro
   assert.ok(game.element('patch-content').innerHTML.includes('29-point'));
   game.run("language='ko';refreshLanguage();");assert.ok(game.element('patch-open').textContent.includes('패치노트'));
   game.element('patch-close').click();assert.equal(game.element('patch-dialog').open,false);
+});
+
+test('vaccine holds for 300ms, accelerates monotonically, and is independent of frame partition',()=>{
+  const a=createHarness(),b=createHarness();launch(a);launch(b);
+  for(const game of [a,b])game.run('charge=20;activateSkill();nextSpawn=Infinity;nextWorm=Infinity;');
+  a.run('step(300)');assert.equal(a.run('clock'),0);
+  const speeds=[];
+  for(let i=0;i<3;i++){const before=a.run('clock');a.run('step(300)');speeds.push(a.run('clock')-before);}
+  assert.ok(speeds[0]<speeds[1]&&speeds[1]<speeds[2]);assert.equal(a.run('clock'),300);
+  b.run('for(let i=0;i<48;i++)step(25)');assert.equal(b.run('clock'),a.run('clock'));
+  a.run('score=100;maybeQueueBoss();step(25)');assert.equal(a.run('clock'),325);
 });
