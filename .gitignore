@@ -6,3 +6,7 @@ backups/
 .DS_Store
 dist/
 _site/
+
+.env
+.env.*
+!.env.example

@@ -6,7 +6,7 @@ const { pathToFileURL } = require('node:url');
 
 const APP_ORIGIN = 'app://neon-parry';
 const START_URL = `${APP_ORIGIN}/neon-parry.html`;
-const RENDERER_ROOT = path.resolve(__dirname, '../renderer');
+const RENDERER_ROOT = path.resolve(__dirname, '../frontend');
 const IS_DEV = !app.isPackaged && process.env.NEON_DEV === 'true';
 const SMOKE_TEST = process.env.NEON_SMOKE_TEST === '1';
 if (SMOKE_TEST) {
@@ -18,6 +18,8 @@ if (SMOKE_TEST) {
 }
 const ASSETS = new Map([
   ['/neon-parry.html', ['index.html', 'text/html; charset=utf-8']],
+  ['/config.js', ['config.js', 'text/javascript; charset=utf-8']],
+  ['/js/online-client.js', ['js/online-client.js', 'text/javascript; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
   ['/js/game.js', ['js/game.js', 'text/javascript; charset=utf-8']],
   ['/js/features.js', ['js/features.js', 'text/javascript; charset=utf-8']],

@@ -8,8 +8,8 @@ const { fileURLToPath, pathToFileURL } = require('node:url');
 const { createHarness } = require('./game-harness.cjs');
 
 const root = path.resolve(__dirname, '..');
-const mainRoot = path.join(root, 'src', 'main');
-const rendererRoot = path.join(root, 'src', 'renderer');
+const mainRoot = path.join(root, 'desktop');
+const rendererRoot = path.join(root, 'frontend');
 
 async function desktopHarness() {
   const handlers = new Map();
@@ -422,5 +422,5 @@ test('renderer styles and scripts use one package version to avoid mixed cached 
   const version=JSON.parse(fs.readFileSync(path.join(root,'package.json'),'utf8')).version;
   const html=fs.readFileSync(path.join(rendererRoot,'index.html'),'utf8');
   const refs=[...html.matchAll(/(?:src|href)="([^"]+)"/g)].map(m=>new URL(m[1],'app://neon-parry/neon-parry.html')).filter(u=>/\.(?:css|js)$/.test(u.pathname));
-  assert.equal(refs.length,5);for(const url of refs)assert.equal(url.searchParams.get('v'),version);
+  assert.equal(refs.length,7);for(const url of refs)assert.equal(url.searchParams.get('v'),version);
 });

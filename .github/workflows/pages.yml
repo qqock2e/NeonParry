@@ -11,7 +11,31 @@ concurrency:
   group: pages
   cancel-in-progress: true
 jobs:
+  backend-check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build standalone backend container
+        run: docker build -t neon-parry-backend ./backend
+      - name: Verify backend health
+        run: |
+          docker run -d --name neon-backend -p 127.0.0.1:8080:8080 neon-parry-backend
+          for attempt in $(seq 1 20); do
+            if curl --fail --silent http://127.0.0.1:8080/health > /tmp/health.json; then
+              python3 -c 'import json; assert json.load(open("/tmp/health.json"))["status"] == "ok"'
+              exit 0
+            fi
+            sleep 1
+          done
+          docker logs neon-backend
+          exit 1
+      - name: Stop test container
+        if: always()
+        run: docker rm -f neon-backend || true
   deploy:
+    needs: backend-check
     runs-on: ubuntu-latest
     environment:
       name: github-pages
@@ -21,13 +45,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Test imported game and desktop bridge
+      - name: Test frontend, desktop bridge and backend
         run: npm test
       - name: Prepare static site
+        env:
+          NEON_API_BASE_URL: ${{ vars.NEON_API_BASE_URL }}
         run: |
           python3 scripts/package_itch.py
-          mkdir _site
-          cp -R src/renderer/. _site/
+          python3 scripts/build_web.py
           cp dist/NeonParry-itch.zip _site/NeonParry-itch.zip
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3

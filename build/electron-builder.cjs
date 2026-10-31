@@ -11,8 +11,8 @@ module.exports = {
     "buildResources": "build"
   },
   "files": [
-    "src/main/**",
-    "src/renderer/**",
+    "desktop/**",
+    "frontend/**",
     "package.json"
   ],
   "electronLanguages": [

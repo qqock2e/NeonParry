@@ -142,7 +142,7 @@ function createHarness(initialStorage = {}) {
   }
 
   document = new Element('#document');
-  const rendererRoot = path.resolve(__dirname, '..', 'src', 'renderer');
+  const rendererRoot = path.resolve(__dirname, '..', 'frontend');
   parseInto(document, fs.readFileSync(path.join(rendererRoot, 'index.html'), 'utf8'));
   document.getElementById = id => document.querySelector(`#${id}`);
   document.createElement = tag => new Element(tag);

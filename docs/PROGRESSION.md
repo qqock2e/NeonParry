@@ -45,4 +45,4 @@ Play → Boss rush / 보스 러쉬 → 난이도 → 백신 또는 미끼폴더 
 
 `neon-parry-achievements`, `neon-parry-discoveries`, `neon-parry-rush-bests`를 localStorage에 저장합니다. Pages·itch.io·Electron은 origin이 달라 기록을 자동 공유하지 않습니다. 비공개 탐색·임베드에서 저장이 차단되어도 현재 세션의 플레이와 도감은 동작하지만 재접속 시 유지되지 않을 수 있습니다.
 
-`src/renderer/js/game.js`는 모드·전투·판정 추적, `features.js`는 도전과제·발견·탭 도감, `menu.js`는 선택과 목록 화면을 담당합니다. `BOSS_TYPES`가 보스 러쉬와 보스 도감의 등록 원본입니다.
+`frontend/js/game.js`는 모드·전투·판정 추적, `features.js`는 도전과제·발견·탭 도감, `menu.js`는 선택과 목록 화면을 담당합니다. `BOSS_TYPES`가 보스 러쉬와 보스 도감의 등록 원본입니다.

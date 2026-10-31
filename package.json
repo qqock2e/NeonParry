@@ -1,16 +1,20 @@
 {
   "name": "neon-parry-desktop",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "private": true,
-  "description": "Neon Parry desktop game",
-  "main": "src/main/main.cjs",
+  "description": "Neon Parry frontend, multiplayer backend and Electron shell",
+  "main": "desktop/main.cjs",
   "author": "qqock2e",
   "license": "UNLICENSED",
   "scripts": {
     "start": "electron .",
-    "test": "node --test tests/game.test.cjs tests/desktop.test.cjs",
+    "test": "node --test tests/game.test.cjs tests/desktop.test.cjs tests/online-client.test.cjs backend/tests/*.test.cjs",
     "build:mac": "electron-builder --config build/electron-builder.cjs --mac zip --universal --publish never",
-    "build:win": "electron-builder --config build/electron-builder.cjs --win portable --x64 --publish never"
+    "build:win": "electron-builder --config build/electron-builder.cjs --win portable --x64 --publish never",
+    "start:backend": "node backend/server.cjs",
+    "dev:frontend": "python3 -m http.server 8000 --bind 127.0.0.1 --directory frontend",
+    "build:web": "python3 scripts/build_web.py",
+    "test:backend": "node --test backend/tests/*.test.cjs"
   },
   "devDependencies": {
     "electron": "45.1.0",
