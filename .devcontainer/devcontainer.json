@@ -1,0 +1,15 @@
+{
+  "name": "Neon Parry server",
+  "image": "mcr.microsoft.com/devcontainers/javascript-node:5-22-bookworm",
+  "containerUser": "node",
+  "remoteUser": "node",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Neon Parry game + duel API",
+      "protocol": "http",
+      "onAutoForward": "notify"
+    }
+  },
+  "postStartCommand": "node scripts/codespaces.cjs"
+}

@@ -1,0 +1,14 @@
+.git
+node_modules
+release
+backups
+.cache
+*.log
+.env
+.env.*
+imports
+legacy
+tests
+docs
+_site
+dist

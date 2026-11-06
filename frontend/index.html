@@ -9,7 +9,8 @@
 
 <!-- Game by qqock2e: https://qqock2e.itch.io/neon-parry -->
 <!-- Renderer for the Electron app. -->
-<link rel="stylesheet" href="styles.css?v=1.2.0">
+<link rel="stylesheet" href="styles.css?v=1.5.2">
+<link rel="stylesheet" href="duel.css?v=1.5.2">
 </head>
 <body>
 <main id="game-shell">
@@ -32,11 +33,12 @@
         <button id="help-open" class="menu-button" aria-haspopup="dialog">Help</button>
         <button id="achievements-open" class="menu-button">Achievements</button>
         <button id="menu-settings" class="menu-button">Settings</button>
-        <button id="patch-open" class="patch-link" aria-haspopup="dialog">Patch notes · 1.2.0</button>
+        <button id="patch-open" class="patch-link" aria-haspopup="dialog">Patch notes · 1.5.2</button>
       </div>
     </div>
     <div class="menu-screen" data-menu-screen="mode" hidden>
       <div class="menu-list mode-list" role="group" aria-labelledby="menu-title">
+        <button id="menu-duel" class="menu-button"><strong>Duel / 듀얼</strong></button>
         <button class="menu-button" data-menu-mode="stage" aria-pressed="false"><strong>Stages</strong></button>
         <button class="menu-button" data-menu-mode="rush" aria-pressed="false"><strong>Boss rush</strong></button>
         <button class="menu-button" data-menu-mode="endless" aria-pressed="true"><strong>Endless</strong></button>
@@ -82,9 +84,46 @@
   </div>
 </section>
 
+<section id="duel-view" class="menu-view" hidden aria-labelledby="duel-title">
+  <div class="menu-board" data-screen="duel">
+    <svg class="menu-lines" viewBox="0 0 480 480" aria-hidden="true"><path d="M240 40V440 M40 240H440" fill="none" stroke="#66765e" stroke-dasharray="2 9"/><circle cx="240" cy="240" r="173" fill="none" stroke="#66765e"/><circle cx="240" cy="240" r="104" fill="none" stroke="#66765e"/></svg>
+    <div class="menu-top">
+      <button id="duel-back" class="duel-back">← Back</button>
+      <button id="duel-help" class="tool-button" type="button" aria-haspopup="dialog">Help</button>
+    </div>
+    <h2 id="duel-title" tabindex="-1">Duel / 듀얼</h2>
+    <div id="duel-setup" class="menu-screen">
+      <div class="menu-list">
+        <button id="duel-random" class="menu-button primary">Find opponent</button>
+        <button id="duel-create" class="menu-button">Create room</button>
+        <div class="duel-join"><input id="duel-code-input" maxlength="6" placeholder="ABC234" aria-label="Room code" autocomplete="off" autocapitalize="characters" spellcheck="false"><button id="duel-join" class="tool-button">Join</button></div>
+        <button id="duel-practice" class="menu-button">Practice vs CPU</button>
+        <label class="duel-level" for="duel-cpu-level"><span id="duel-level-label">Practice opponent</span><select id="duel-cpu-level"><option value="rookie">Rookie / 입문</option><option value="normal" selected>Rival / 대등</option><option value="expert">Expert / 숙련</option></select></label>
+      </div>
+      <p id="duel-online-note" class="menu-small"></p>
+      <details class="duel-settings">
+        <summary id="duel-rules-title">Rules</summary>
+        <p id="duel-rules-text" class="menu-small"></p>
+        <p id="duel-threats-text" class="menu-small"></p>
+      </details>
+      <details class="duel-settings"><summary id="duel-settings-label">Connection settings</summary><label for="duel-name" id="duel-name-label">Name</label><input id="duel-name" maxlength="24" value="Player" autocomplete="nickname"><label for="duel-server-url" id="duel-server-url-label">Server address</label><input id="duel-server-url" type="url" placeholder="https://…" autocomplete="off" spellcheck="false"></details>
+    </div>
+    <div id="duel-matching" class="menu-screen" hidden><p id="duel-matching-label">Finding opponent…</p><p id="duel-matching-note" class="menu-small"></p><button id="duel-cancel" class="menu-button">Cancel</button></div>
+    <div id="duel-room" class="menu-screen" hidden><p id="duel-room-label" class="menu-small">Room code</p><button id="duel-room-code" class="menu-button"></button><p id="duel-room-hint" class="menu-small"></p><ul id="duel-players"></ul><button id="duel-ready" class="menu-button primary">Ready</button><button id="duel-leave" class="menu-button">Leave room</button></div>
+    <p id="duel-feedback" class="menu-small" role="status" aria-live="polite"></p>
+  </div>
+</section>
+
 <div id="game-view" hidden>
 <section class="layout" data-i18n-label="a15" aria-label="Core defense game">
+<div id="duel-upgrade-slot">
+<section id="duel-upgrades" aria-labelledby="duel-upgrades-label" hidden>
+<h2 id="duel-upgrades-label">Choose 1 upgrade</h2>
+<div id="duel-upgrade-choices"></div>
+</section>
+</div>
 <div class="console">
+<p class="duel-field-heading" id="duel-self-name">You</p>
 <div class="arena" id="arena" data-i18n-label="a16" aria-label="Four-lane defense arena. Use arrow keys, WASD, or tap the incoming lane." data-state="idle">
 <svg viewBox="0 0 480 480" aria-hidden="true">
 <g id="camera"><g id="world">
@@ -130,8 +169,18 @@
 <div class="legend" data-i18n-label="a17" aria-label="Unlocked threats"><span><i class="diamond" aria-hidden="true"></i><span data-i18n="Virus">Virus</span></span><span data-unlock="3" hidden><i class="dot" aria-hidden="true"></i>DDoS</span><span data-unlock="8" hidden><i class="hex" aria-hidden="true"></i><span data-i18n="Trojan">Trojan</span></span><span data-unlock="15" hidden><i class="worm-icon" aria-hidden="true"></i><span data-i18n="Worm">Worm</span></span><span data-unlock="25" hidden><i class="ransom-icon" aria-hidden="true"></i><span data-i18n="Ransomware">Ransomware</span></span><span data-unlock="40" hidden><i class="phish-icon" aria-hidden="true"></i><span data-i18n="Phishing">Phishing</span></span></div>
 <p id="message" role="status"></p>
 </div>
+<aside id="duel-opponent" aria-labelledby="duel-opponent-name" hidden>
+<div id="duel-single-opponent">
+<p class="duel-field-heading"><span id="duel-opponent-name">Opponent</span><span id="duel-opponent-vulnerability">0%</span></p>
+<div id="duel-opponent-arena" class="arena" aria-hidden="true"></div>
+</div>
+<div id="duel-opponent-group" hidden>
+<p class="duel-field-heading" id="duel-opponents-label">Opponents</p>
+<div id="duel-opponent-tiles"></div>
+</div>
+</aside>
 <aside class="sidebar" data-i18n-label="a18" aria-label="Defense status and controls">
-<div class="run-heading"><p id="run-label"></p><div id="stage-progress" hidden><span id="stage-goal"></span><div class="meter" id="stage-progress-meter" role="progressbar" aria-label="Stage progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="stage-progress-fill"></div></div></div></div>
+<div class="run-heading"><p id="run-label"></p><p id="duel-latency" hidden></p><p id="duel-speed" hidden></p><div id="stage-progress" hidden><span id="stage-goal"></span><div class="meter" id="stage-progress-meter" role="progressbar" aria-label="Stage progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="stage-progress-fill"></div></div></div></div>
 <div><div class="meter-label"><label id="vulnerability-label" data-i18n="s12">Vulnerability</label><output id="vulnerability-value">0%</output></div><div class="meter" id="vulnerability" role="progressbar" aria-labelledby="vulnerability-label" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="meter-fill" id="vulnerability-fill" style="width: 0%;"></div></div><div class="decoy-panel" id="decoy-panel" hidden><div class="meter-label"><label id="decoy-label" data-i18n="s10">Decoy</label><output id="decoy-value">0 / 50</output></div><div class="meter" id="decoy-meter" role="progressbar" aria-labelledby="decoy-label" aria-valuemin="0" aria-valuemax="50" aria-valuenow="0"><div class="meter-fill" id="decoy-fill" style="width: 0%;"></div></div></div></div>
 <div class="score-row"><div><small id="score-label" data-i18n="s13">Eliminations</small><strong id="score">0</strong></div><div><small data-i18n="s8">Best</small><strong id="best">0</strong></div></div>
 <div class="skill-panel"><button class="skill-button" id="skill" disabled data-i18n-label="a23" aria-label="Vaccine skill charging" data-ready="false"><svg viewBox="0 0 32 32" aria-hidden="true"><path id="skill-glyph" d="M16 3L27 8V17L16 29L5 17V8Z M16 10V22 M10 16H22"></path></svg><span><strong id="skill-name" data-i18n="s14">Vaccine</strong><small id="skill-key" data-i18n="s4">Space / lane swipe</small></span></button><div class="skill-track" id="skill-meter" role="progressbar" data-i18n-label="a20" aria-label="Skill charge" aria-valuemin="0" aria-valuemax="20" aria-valuenow="0"><div id="skill-fill" style="width: 0%;"></div></div><p id="skill-status" role="status" data-i18n="s5">Eliminate to charge · 0/20</p></div>
@@ -141,14 +190,18 @@
 </section><footer></footer>
 </div>
 <dialog id="help-dialog" aria-labelledby="help-title"><div class="dialog-heading"><h2 id="help-title">How to play</h2><button id="help-close" class="tool-button" autofocus>Close ×</button></div><div id="help-content"></div></dialog>
-<dialog id="patch-dialog" aria-labelledby="patch-title"><div class="dialog-heading"><h2 id="patch-title">Patch notes · 1.2.0</h2><button id="patch-close" class="tool-button" autofocus>Close ×</button></div><div id="patch-content"></div></dialog>
+<dialog id="patch-dialog" aria-labelledby="patch-title"><div class="dialog-heading"><h2 id="patch-title">Patch notes · 1.5.2</h2><button id="patch-close" class="tool-button" autofocus>Close ×</button></div><div id="patch-content"></div></dialog>
 <p id="achievement-toast" class="achievement-toast" role="status" hidden></p>
 </main>
-<script src="config.js?v=1.2.0"></script>
-<script src="js/online-client.js?v=1.2.0"></script>
-<script src="js/game.js?v=1.2.0"></script>
-<script src="js/features.js?v=1.2.0"></script>
-<script src="js/menu.js?v=1.2.0"></script>
-<script src="js/desktop.js?v=1.2.0"></script>
+<script src="config.js?v=1.5.2"></script>
+<script src="js/online-client.js?v=1.5.2"></script>
+<script src="js/game.js?v=1.5.2"></script>
+<script src="js/features.js?v=1.5.2"></script>
+<script src="js/menu.js?v=1.5.2"></script>
+<script src="js/duel-boss.js?v=1.5.2"></script>
+<script src="js/duel-engine.js?v=1.5.2"></script>
+<script src="js/duel-view.js?v=1.5.2"></script>
+<script src="js/duel.js?v=1.5.2"></script>
+<script src="js/desktop.js?v=1.5.2"></script>
 </body>
 </html>
