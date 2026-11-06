@@ -5,7 +5,7 @@
 (() => {
   const layerIds = ['enemies', 'effects', 'foreground-fx', 'phishing-links', 'boss-entities', 'lane-states'];
   const textIds = ['overlay-symbol', 'overlay-title', 'overlay-copy', 'skill-name', 'skill-key', 'skill-status', 'action', 'run-label', 'score-label', 'score', 'best', 'vulnerability-value', 'message', 'share-status', 'boss-name', 'boss-pips', 'boss-banner-tag', 'boss-banner-title', 'boss-banner-copy'];
-  const stateIds = ['overlay', 'skill-choices', 'skill', 'skill-meter', 'skill-fill', 'share', 'next-stage', 'stage-progress', 'boss-hud', 'boss-banner', 'reaction-meter', 'reaction-fill', 'vulnerability', 'vulnerability-fill', 'state-light', 'arena', 'decoy-panel', 'decoy-folder', 'folder-capacity', 'camera', 'world', 'core', 'game-view', 'main-menu', 'menu-open', 'game-shell', 'guard-band', 'guard-outer', 'guard-inner', 'guard-pose'];
+  const stateIds = ['overlay', 'skill-choices', 'skill', 'skill-meter', 'skill-fill', 'share', 'next-stage', 'stage-progress', 'boss-hud', 'boss-banner', 'reaction-meter', 'reaction-fill', 'vulnerability', 'vulnerability-fill', 'state-light', 'arena', 'decoy-panel', 'decoy-folder', 'folder-capacity', 'camera', 'world', 'core', 'game-view', 'main-menu', 'menu-open', 'game-shell', 'skill-glyph', 'guard-band', 'guard-outer', 'guard-inner', 'guard-pose'];
   const arrow = { up: '↑', right: '→', down: '↓', left: '←' };
   let saved = null, actors = new Map(), lastEventId = 0, guards = 0, roundStart = null, stance = 'guard';
   let config, artTemplate, rivals = new Map(), pendingTarget, prediction, eliminated, localBoss;
@@ -49,7 +49,7 @@
       ? attack.impactAt - attack.launchedAt : TYPES[kind].travel;
     const deceptive = kind === 'phishing' && arrow[attack.decoyDir] && Number.isFinite(attack.revealAt);
     const actor = createEnemyActor(deceptive ? attack.decoyDir : attack.dir, attack.impactAt - travel, travel, kind, {
-      arrival: attack.impactAt, trueDir: attack.dir, revealAt: deceptive ? attack.revealAt : -Infinity, duelVisual: true
+      state:attack.echo?'echo':'moving',arrival: attack.impactAt, trueDir: attack.dir, revealAt: deceptive ? attack.revealAt : -Infinity, duelVisual: true
     });
     node('enemies').append(actor.node);
     if (deceptive) {
@@ -478,7 +478,7 @@
     localBoss.reset(); localBoss = null;
     $('game-shell').removeAttribute('data-duel-group');
     $('game-shell').removeAttribute('data-duel-upgrades');
-    $('duel-opponent').hidden = true;
+    $('duel-opponent').hidden = true;$('duel-opponent-activity').hidden=true;
     $('duel-opponent').setAttribute('aria-labelledby', 'duel-opponent-name');
     $('duel-single-opponent').hidden = false; $('duel-opponent-group').hidden = true;
     $('duel-latency').hidden = true;
@@ -588,7 +588,14 @@
     const mine = state.players.find(player => player.id === ownId);
     const opponents = state.players.filter(player => player.id !== ownId);
     if (!mine || !opponents.length) return;
+    const survival=state.mode==='survival';
     const upgradesEnabled = state.mode === 'clash';
+    const timedActors=upgradesEnabled||survival;
+    if(survival&&typeof discover==='function'){
+      for(const a of state.attacks)if(a.state==='dormant'||at>=a.launchedAt)discover('enemy',a.kind==='echo'?'trojan':a.kind);
+      if(mine.boss)discover('boss',mine.boss.kind);
+    }
+    if(survival){GUARD_WINDOW=state.rules.guardWindowMs;PERFECT_WINDOW=state.rules.perfectWindowMs;lockedUntil={...mine.lockedUntil};updateGuardZone(2200/(1+(state.speedPercent||0)/100));}
     const shell = $('game-shell');
     if (upgradesEnabled && shell.getAttribute('data-duel-upgrades') === null) shell.setAttribute('data-duel-upgrades', '');
     else if (!upgradesEnabled && shell.getAttribute('data-duel-upgrades') !== null) shell.removeAttribute('data-duel-upgrades');
@@ -609,7 +616,7 @@
       player.name || config.names.get(player.id) || tr('Opponent', '상대') + (opponents.length > 1 ? ' ' + (i + 1) : '');
     const rivalPending = opponents.map((player, i) => {
       const scene = rivals.get(player.id);
-      return [scene, scene.prepare(state.attacks, player, at, opponentLabel(player, i), player.id === targetId && !player.eliminated, targeting, upgradesEnabled)];
+      return [scene, scene.prepare(state.attacks, player, at, opponentLabel(player, i), player.id === targetId && !player.eliminated, targeting, timedActors)];
     });
     localBoss.render(mine.boss, at, GUARD_WINDOW);
     paintBossHUD(mine.boss, at);
@@ -617,7 +624,7 @@
     for (const attack of incoming) {
       let actor = actors.get(attack.attackId);
       if (!actor) {
-        actor = mountAttackActor(attack, upgradesEnabled, $);
+        actor = mountAttackActor(attack, timedActors, $);
         enemies.push(actor);
         actors.set(attack.attackId, actor);
       }
@@ -642,12 +649,14 @@
         else if (bossAction) setMessage(tr('Boss parry', '보스 패링'));
         else {
           const perfectText = mine.upgrades?.perfect_energy > 0 || mine.upgrades?.guard_energy > 0
-            ? tr('Perfect', '정밀 패링') : tr('Perfect / +½ attack energy', '정밀 패링 / 공격 에너지 +½');
-          setMessage(event.perfect ? perfectText : tr('Guarded / rival pressure reset', '방어 / 상대 연속 적중 초기화'));
+            ? tr('Perfect', '정밀 패링') : survival?tr('Perfect / activity +','정밀 패링 / 활성도 +')+event.activityGain+'%':tr('Perfect / +½ attack energy', '정밀 패링 / 공격 에너지 +½');
+          setMessage(event.perfect ? perfectText : survival?tr('Guarded / activity +','방어 / 활성도 +')+event.activityGain+'%':tr('Guarded / rival pressure reset', '방어 / 상대 연속 적중 초기화'));
         }
       } else if (own && manualAttack(event)) {
         strikePose(event.dir, false); addEffect(event.dir, 'guard'); playSound('guard');
         setMessage(tr('Attack sent ', '공격 전송 ') + arrow[event.dir]);
+      } else if(event.type==='activity'&&own){
+        playSound('proxy');setMessage(tr('Activity / −','활성도 / −')+event.spent+'% · '+tr('Cancel ','상쇄 ')+event.cancelled+' · '+tr('Pressure ','증폭 ')+event.reflected);
       } else if (event.type === 'attack' && own && event.source === 'mutation') {
         setMessage(tr('Extra virus', '추가 바이러스'));
       } else if (event.type === 'worm_charge' && own) {
@@ -694,14 +703,17 @@
     const speedReadout = $('duel-speed');
     speedReadout.hidden = !Number.isFinite(state.speedPercent) && speed <= 0;
     if (!speedReadout.hidden) {
-      const speedText = tr('Shot speed +', '공격 속도 +') + speed + '%';
+      const speedText = (survival?tr('Pattern speed +','패턴 속도 +'):tr('Shot speed +', '공격 속도 +')) + speed + '%';
       if (speedReadout.textContent !== speedText) speedReadout.textContent = speedText;
     }
     renderUpgrade(upgradesEnabled && state.status === 'running' && !eliminated && !state.boss ? mine.offer : null);
-    const energy = Math.max(0, Math.min(3, options.energy === undefined ? mine.energy : options.energy));
-    $('skill-fill').style.width = energy / 3 * 100 + '%';
+    const maxEnergy=survival?100:3;
+    const energy = Math.max(0, Math.min(maxEnergy, options.energy === undefined ? mine.energy : options.energy));
+    $('skill-fill').style.width = energy / maxEnergy * 100 + '%';
     $('skill-meter').setAttribute('aria-valuenow', energy.toFixed(2));
-    const bossLocked = !!state.boss;
+    const bossLocked = survival?mine.waveState==='waiting'||mine.boss?.phase==='done':!!state.boss;
+    $('skill-meter').setAttribute('aria-valuemax',maxEnergy);
+    $('skill-meter').setAttribute('aria-label',survival?tr('Activity','활성도'):tr('Attack energy','공격 에너지'));
     const attackCost = mine.attackCost ?? 1;
     $('skill').disabled = bossLocked || eliminated;
     $('skill').dataset.ready = String(!bossLocked && !eliminated && energy + 1e-9 >= attackCost);
@@ -716,6 +728,21 @@
     if (options.stance) setStance(options.stance);
     updateEffects(); updateLaneStates(); $('core').style.opacity = clock < coreFlashUntil ? '.4' : '1';
     if (messageUntil && clock > messageUntil) { $('message').textContent = ''; messageUntil = 0; }
+    $('duel-opponent-activity').hidden=!survival;
+    if(survival){
+      $('duel-opponent-activity-label').textContent=tr('Activity ','활성도 ')+(opponents[0].activity||0).toFixed(1)+'%';
+      $('duel-opponent-activity-meter').setAttribute('aria-valuenow',opponents[0].activity||0);
+      $('duel-opponent-activity-fill').style.width=(opponents[0].activity||0)+'%';
+      $('skill-glyph').setAttribute('d','M3 16H9L13 6L19 26L23 16H29');
+      $('skill-status').style.color=mine.amplification>0?'var(--pink)':'var(--muted)';
+      $('skill-name').textContent=tr('Activity','활성도')+' '+energy.toFixed(1)+'%';
+      $('skill-key').textContent=tr('Space / swipe · spend up to 10%','Space / 스와이프 · 최대 10% 사용');
+      $('skill-status').textContent=tr('My pressure +','내 증폭 +')+(mine.amplification||0)+'%p · '+tr('Rival +','상대 +')+(opponents[0].amplification||0)+'%p';
+      $('skill').disabled=bossLocked||eliminated||energy<=0;$('skill').dataset.ready=String(!bossLocked&&!eliminated&&energy>0);
+      $('skill').setAttribute('aria-label',tr('Use activity','활성도 사용'));
+      $('arena').dataset.stance='guard';
+    }
+
   }
   window.NeonDuelView = Object.freeze({
     mount, render, unmount, setMessage, banner, hideBanner, setStance, predictGuard, setLatency, setTarget,

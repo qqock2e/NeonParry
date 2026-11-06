@@ -1,10 +1,10 @@
 (function (root, factory) {
   'use strict';
   const commonJS = typeof module === 'object' && module.exports;
-  const api = factory(commonJS ? require('./duel-boss.js') : root.NeonDuelBoss);
+  const api = factory(commonJS ? require('./duel-boss.js') : root.NeonDuelBoss, commonJS ? require('./duel-survival.js') : root.NeonDuelSurvival);
   if (commonJS) module.exports = api;
   if (root) root.NeonDuelEngine = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (Boss) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Boss, Survival) {
   'use strict';
 
   // One shared ruleset for the authoritative server and offline practice.
@@ -123,6 +123,7 @@
   }
 
   function createMatch(options) {
+    if(options?.mode==='survival')return Survival.createMatch(options);
     const { players, startAt = 0, seed = null, mode = 'classic', guardGraceMs = 0 } = options || {};
     if (mode !== 'classic' && mode !== 'clash') throw new TypeError('Unknown duel mode.');
     const maxPlayers = mode === 'clash' ? RULES.clashMaxPlayers : 2;
@@ -375,6 +376,7 @@
   }
 
   function advance(match, now) {
+    if(match.mode==='survival')return Survival.advance(match,now);
     if (!validTime(now)) throw new TypeError('now must be a finite timestamp.');
     if (match.now === null) match.now = Math.min(match.startAt, now);
     const target = Math.max(now, match.now);
@@ -496,6 +498,7 @@
   }
 
   function input(match, playerId, command, now, options) {
+    if(match.mode==='survival')return Survival.input(match,playerId,command,now);
     if (!validTime(now)) return { ok: false, reason: 'invalid_time' };
     advance(match, now);
     if (match.status !== 'running') return { ok: false, reason: match.status };
@@ -600,6 +603,7 @@
   }
 
   function forfeit(match, playerId, now) {
+    if(match.mode==='survival')return Survival.forfeit(match,playerId,now);
     if (!validTime(now)) return { ok: false, reason: 'invalid_time' };
     advance(match, now);
     if (match.status === 'finished') return { ok: false, reason: 'finished' };
@@ -612,6 +616,7 @@
   }
 
   function snapshot(match, now) {
+    if(match.mode==='survival')return Survival.snapshot(match,now);
     advance(match, now);
     const isClash = match.mode === 'clash';
     const at = match.finishedAt ?? match.now;

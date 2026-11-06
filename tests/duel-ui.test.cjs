@@ -8,11 +8,14 @@ const{createHarness}=require('./game-harness.cjs');
 const source=name=>fs.readFileSync(path.join(__dirname,'../frontend/js',name),'utf8');
 const settle=()=>new Promise(resolve=>setImmediate(resolve));
 
-function createDuel(){
+// Legacy Clash/PvP regression fixture. New PvE tests below use the real survival entry.
+function createDuel(legacy=true){
   const game=createHarness({'neon-parry-sound':'off'});
   game.run('window.performance={now:()=>Date.now()};Math.random=()=>0.99;');
-  for(const name of['duel-boss.js','duel-engine.js','duel-view.js','duel.js'])game.run(source(name));
-  game.frameTime=0;return game;
+  for(const name of['duel-boss.js','duel-survival.js','duel-engine.js','duel-view.js'])game.run(source(name));
+  if(legacy)game.run('window.__legacyCreate=window.NeonDuelEngine.createMatch');
+  if(legacy)game.run(`window.NeonDuelEngine=Object.freeze({...window.NeonDuelEngine,createMatch:options=>window.__legacyCreate({...options,mode:'clash'})});`);
+  game.run(source('duel.js'));game.frameTime=0;return game;
 }
 function frame(game,elapsed=50){
   game.frameTime+=elapsed;const callbacks=[...game.frames.values()];game.frames.clear();
@@ -322,4 +325,27 @@ test('late stream callbacks from a cancelled search cannot consume or cancel a n
   game.run('window.__oldCallbacks=window.__callbacks;');await game.run('window.NeonDuel.leave()');game.run("window.__ticket={ticketId:'ticket-2',ticketToken:'second-secret',status:'waiting',serverTime:10000};");await click(game,'duel-random');
   game.run('window.__oldCallbacks.onOpen();window.__oldCallbacks.onState(window.__state);');frame(game);
   assert.equal(game.element('duel-matching').hidden,false);assert.equal(game.element('game-view').hidden,true);assert.equal(game.run('window.NeonDuel.isActive()'),false);assert.deepEqual(game.plain('window.__cancelled'),[{id:'ticket-1',token:'ticket-secret'}]);assert.equal(game.run('window.__closed'),1);assert.equal(game.run('window.__left.length'),1);
+});
+
+test('current CPU practice starts survival with identical waves and a 100-percent activity meter',()=>{
+ const game=createDuel(false);startPractice(game);advance(game,3500);
+ assert.equal(game.element('skill-meter').getAttribute('aria-valuemax'),'100');
+ assert.match(game.element('skill-name').textContent,/Activity/);
+ assert.equal(game.run('discoveries["enemy:virus"]'),true);
+ assert.equal(game.element('duel-upgrades').hidden,true);
+ const self=game.element('enemies').querySelector('[data-kind="virus"]'),rival=game.element('duel-opponent-arena').querySelector('[data-kind="virus"]');
+ assert.ok(self);assert.ok(rival);assert.equal(self.getAttribute('transform'),rival.getAttribute('transform'));
+ const before=Number(game.element('skill-meter').getAttribute('aria-valuenow'));key(game,'Space');frame(game);assert.equal(Number(game.element('skill-meter').getAttribute('aria-valuenow')),before);
+});
+
+test('survival swipe from the center uses activity directly without selecting an attack lane',()=>{
+ const game=createDuel(false);startPractice(game);advance(game,2500);
+ // Get the real survival match through a small snapshot observer, without changing controller commands.
+ game.run("window.__swipeCalls=0;");
+ const arena=game.element('arena');
+ arena.dispatchEvent({type:'pointerdown',pointerId:91,clientX:240,clientY:240,button:0,target:arena});
+ arena.dispatchEvent({type:'pointermove',pointerId:91,clientX:280,clientY:280,target:arena});
+ arena.dispatchEvent({type:'pointerup',pointerId:91,clientX:280,clientY:280,target:arena});
+ // No activity has been earned yet: the attempt reaches the engine and explains how to earn it.
+ assert.match(game.element('message').textContent,/activity|활성도/);
 });

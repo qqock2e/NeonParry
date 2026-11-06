@@ -244,5 +244,5 @@
     };
   }
 
-  return Object.freeze({ createFight, nextAt, advance, guard, snapshot });
+  return Object.freeze({ KINDS:Object.freeze(Object.keys(ATTEMPTS)), createFight, nextAt, advance, guard, snapshot });
 });

@@ -36,8 +36,8 @@
       'duel-settings-label':['Connection settings','접속 설정'],'duel-name-label':['Name','이름'],'duel-server-url-label':['Server address','서버 주소'],
       'duel-online-note':['Random 1v1 or a room for up to 8.','랜덤 1대1 또는 최대 8인 친구방.'],
       'duel-rules-title':['Rules','대전 규칙'],
-      'duel-rules-text':['Directions to parry. Empty parries add 4%p vulnerability. Shift + direction to attack.','방향키로 패링하고 Shift + 방향키로 공격합니다. 헛방어를 하면 취약률이 4%p 올라요.'],
-      'duel-threats-text':['Pick upgrades with 1–3 or a tap. After every minute of combat, fight a boss on your own arena. The duel resumes when everyone finishes.','능력은 1~3번 키나 터치로 고르세요. 대전 1분마다 각자 보스와 싸우고, 모두 끝나면 대전을 재개합니다.'],
+      'duel-rules-text':['CPU practice: identical endless patterns. Parry to earn activity; Space or swipe spends up to 10% to cancel pressure or amplify the opponent’s next hit.','CPU 연습: 같은 무한 패턴을 패링해 활성도를 모으세요. Space·스와이프는 최대 10%를 써서 내 증폭을 상쇄하거나 상대의 다음 피격을 증폭합니다.'],
+      'duel-threats-text':['CPU: clear your field for a random boss each minute. Wait for both players or the 45s wave deadline. No skill cards. Online PvP retains the previous rules.','CPU: 매분 필드를 비우면 무작위 보스가 등장합니다. 모두 마치거나 웨이브 45초가 지나면 재개합니다. 기존 능력 카드는 없습니다. 온라인 PvP는 이전 규칙입니다.'],
       'duel-matching-label':['Finding opponent…','상대를 찾고 있습니다…'],
       'duel-matching-note':['The duel starts when another player joins matchmaking. You can cancel at any time.','다른 플레이어가 랜덤 매칭에 들어오면 시작합니다. 언제든 취소할 수 있습니다.'],
       'duel-cancel':['Cancel','취소'],'duel-room-label':['Room code · tap to copy','방 코드 · 눌러서 복사'],
@@ -178,7 +178,7 @@
   }
   function practice(){
     stop();session='practice';practiceClock=0;nextCpuAttack=2800;cpuReactionAt=0;seq=0;
-    battle=Engine.createMatch({players:['you','cpu'],startAt:2200,mode:MODE,seed:Math.floor(Math.random()*2**32)});
+    battle=Engine.createMatch({players:['you','cpu'],startAt:2200,mode:'survival',seed:Math.floor(Math.random()*2**32)});
     mount([{id:'you',name:tr('You','나')},{id:'cpu',name:'CPU'}]);
     lastFrame=null;frame=requestAnimationFrame(draw);$('arena').focus({preventScroll:true});
   }
@@ -187,7 +187,7 @@
     const cpu=battle.players.find(player=>player.id==='cpu');
     if(cpu.eliminated)return;
     const level=$('duel-cpu-level').value;
-    const config=level==='rookie'?{guard:.35,jitter:210,pace:950}:level==='expert'?{guard:.9,jitter:100,pace:550}:{guard:.7,jitter:170,pace:700};
+    const config=battle.mode==='survival'?(level==='rookie'?{guard:.75,jitter:200,pace:950}:level==='expert'?{guard:.98,jitter:45,pace:550}:{guard:.9,jitter:80,pace:700}):(level==='rookie'?{guard:.35,jitter:210,pace:950}:level==='expert'?{guard:.9,jitter:100,pace:550}:{guard:.7,jitter:170,pace:700});
     const fight=cpu.boss;
     if(fight?.phase==='reaction'){
       if(at>=cpuReactionAt){
@@ -196,9 +196,9 @@
       }
       return;
     }
-    const attacks=battle.boss
+    const attacks=fight
       ?fight.attacks
-      :battle.attacks.filter(attack=>attack.to==='cpu'&&attack.state!=='dormant');
+      :battle.attacks.filter(attack=>attack.to==='cpu'&&attack.state!=='dormant'&&!attack.echo);
     const byId=new Map(attacks.map(attack=>[attack.attackId??attack.id,attack]));
     for(const [id,attack] of byId){
       if(cpuPlans.has(id))continue;
@@ -211,10 +211,12 @@
       if(at>=atGuard){
         Engine.input(battle,'cpu',{type:'guard',dir:attack.dir},at);
         cpuPlans.set(id,Infinity);
-        if(battle.boss&&fight.phase!=='active')break;
+        if(fight&&fight.phase!=='active')break;
       }
     }
-    if(!battle.boss&&at>=nextCpuAttack){
+    if(battle.mode==='survival'&&at>=nextCpuAttack){
+      if(cpu.activity>=10||(cpu.amplification>0&&cpu.activity>0)){const result=Engine.input(battle,'cpu',{type:'attack'},at);nextCpuAttack=at+(result.ok?config.pace+Math.random()*350:150);}
+    }else if(!battle.boss&&at>=nextCpuAttack){
       const result=Engine.input(battle,'cpu',{type:'attack',dir:dirs[Math.floor(Math.random()*4)]},at);
       nextCpuAttack=at+(result.ok?config.pace+Math.random()*350:100);
     }
@@ -228,13 +230,13 @@
     let energy=me.energy;
     if(state.status==='running'&&!me.eliminated&&at>state.now){
       const personalRecharge=1+(me.upgrades?.recharge||0)/100;
-      const gained=Number.isFinite(state.rechargeRate)
+      const gained=state.mode==='survival'?0:Number.isFinite(state.rechargeRate)
         ?Engine.baseEnergyGain(state,state.now,at)
         :(at-state.now)/Engine.RULES.energyRechargeMs;
-      energy=Math.min(Engine.RULES.energyMax,energy+gained*personalRecharge);
+      energy=Math.min(state.mode==='survival'?100:Engine.RULES.energyMax,energy+gained*personalRecharge);
     }
     const connection=session==='practice'?tr('CPU practice','CPU 연습'):canSend()||state.status==='finished'?'':tr('Reconnecting','재연결 중');
-    if(state.boss&&stance==='attack')setStance('guard');
+    if(state.boss&&state.mode!=='survival'&&stance==='attack')setStance('guard');
     View.render(state,ownId(),at,{opponentName,energy,connection,stance,online:session==='online'});
     $('action').textContent=state.status==='finished'?session==='practice'?tr('Retry','재도전'):randomDuel?tr('Find next opponent','다음 상대 찾기'):tr('Rematch','재대전'):tr('Leave duel','대전 나가기');
     if(state.status==='countdown')View.banner('⌖',String(Math.max(1,Math.ceil((state.startAt-at)/1000))),tr('Directions: parry · Shift + direction: attack','방향키: 패링 · Shift + 방향: 공격'));
@@ -245,6 +247,7 @@
       View.banner(won?'✓':'×',title,detail);
     }else if(session==='online'&&!canSend())View.banner('Ⅱ',tr('Reconnecting…','재연결 중…'),tr('The duel continues on the server.','서버에서는 대전이 계속 진행됩니다.'));
     else if(me.eliminated)View.banner('×',tr('Eliminated','탈락'),tr('Watch the remaining players.','남은 플레이어의 대전을 볼 수 있어요.'));
+    else if(state.mode==='survival'&&me.waveState==='draining'){View.hideBanner();View.setMessage(tr('Clear your field to enter the boss round','남은 적을 모두 처리하면 보스가 등장합니다.'));}
     else if(me.boss?.phase==='done'){
       const cleared=me.boss.result==='cleared';
       View.banner(cleared?'✓':'Ⅱ',cleared?tr('Boss cleared','보스 처치'):tr('Boss escaped','보스 이탈'),
@@ -263,7 +266,7 @@
     return client.sendInput(membership.code,membership.token,{...command,matchId,seq:++seq}).then(result=>{
       if(!isCurrent())return;
       if(result.state)consume(result.state);
-      if(!result.ok&&result.reason==='energy')View.setMessage(tr('Attack charging','공격 충전 중'),'var(--muted)');
+      if(!result.ok&&result.reason==='energy')View.setMessage(battle.mode==='survival'?tr('Earn activity with parries','패링으로 활성도를 모으세요'):tr('Attack charging','공격 충전 중'),'var(--muted)');
     }).catch(()=>{
       if(isCurrent())View.setMessage(tr('Input did not reach the server','입력이 서버에 닿지 않았어요'),'var(--muted)');
     });
@@ -287,11 +290,11 @@
   function command(dir,type=stance,inputAt=now()){
     if(!battle||battle.status!=='running'||!dirs.includes(dir)||battle.players.find(player=>player.id===ownId())?.eliminated)return;
     if(session==='online'&&!canSend())return;
-    if(battle.boss&&(type==='attack'||battle.players.find(player=>player.id===ownId())?.boss?.phase==='done'))return;
+    if(battle.boss&&battle.mode!=='survival'&&(type==='attack'||battle.players.find(player=>player.id===ownId())?.boss?.phase==='done'))return;
     if(type==='attack')setStance('guard');
     if(session==='practice'){
       const result=Engine.input(battle,'you',{type,dir,seq:++seq},inputAt);
-      if(!result.ok&&result.reason==='energy')View.setMessage(tr('Attack charging','공격 충전 중'),'var(--muted)');
+      if(!result.ok&&result.reason==='energy')View.setMessage(battle.mode==='survival'?tr('Earn activity with parries','패링으로 활성도를 모으세요'):tr('Attack charging','공격 충전 중'),'var(--muted)');
       return;
     }
     if(type==='guard'&&!battle.boss){
@@ -317,19 +320,21 @@
   $('duel-random').addEventListener('click',findOpponent);$('duel-cancel').addEventListener('click',()=>leave());$('duel-leave').addEventListener('click',()=>leave());$('duel-ready').addEventListener('click',ready);
   $('duel-code-input').addEventListener('keydown',event=>{if(event.code==='Enter')requestRoom(true);});
   $('duel-room-code').addEventListener('click',async()=>{try{await navigator.clipboard.writeText(room.code);feedback(tr('Room code copied.','방 코드를 복사했습니다.'));}catch{feedback(tr('Share this code: ','이 코드를 공유하세요: ')+room.code);}});
-  $('skill').addEventListener('click',()=>{if(View.isMounted()&&battle?.status==='running'&&!battle.boss)setStance(stance==='guard'?'attack':'guard');});
+  $('skill').addEventListener('click',()=>{if(View.isMounted()&&battle?.mode==='survival'){command('up','attack');return;}if(View.isMounted()&&battle?.status==='running'&&!battle.boss)setStance(stance==='guard'?'attack':'guard');});
   $('arena').addEventListener('pointerdown',event=>{if(!View.isMounted()||event.button>0)return;event.preventDefault();touches.set(event.pointerId,{x:event.clientX,y:event.clientY,at:now(),dir:pointerDirection(event.clientX,event.clientY,event.target),dx:0,dy:0,attack:event.shiftKey});try{$('arena').setPointerCapture(event.pointerId);}catch{}});
   $('arena').addEventListener('pointermove',event=>{const point=touches.get(event.pointerId);if(!point)return;const dx=event.clientX-point.x,dy=event.clientY-point.y;if(Math.hypot(dx,dy)>Math.hypot(point.dx,point.dy)){point.dx=dx;point.dy=dy;}});
   $('arena').addEventListener('pointerup',event=>{
     const point=touches.get(event.pointerId);touches.delete(event.pointerId);if(!point||!View.isMounted())return;
     const dx=event.clientX-point.x,dy=event.clientY-point.y;if(Math.hypot(dx,dy)>Math.hypot(point.dx,point.dy)){point.dx=dx;point.dy=dy;}
-    if(Math.hypot(point.dx,point.dy)>=28){const vertical=point.dir==='up'||point.dir==='down';if(point.dir&&(vertical?Math.abs(point.dy)>Math.abs(point.dx)*1.2:Math.abs(point.dx)>Math.abs(point.dy)*1.2))command(point.dir,'attack');}
+    if(Math.hypot(point.dx,point.dy)>=28&&battle?.mode==='survival'){command('up','attack');}
+    else if(Math.hypot(point.dx,point.dy)>=28){const vertical=point.dir==='up'||point.dir==='down';if(point.dir&&(vertical?Math.abs(point.dy)>Math.abs(point.dx)*1.2:Math.abs(point.dx)>Math.abs(point.dy)*1.2))command(point.dir,'attack');}
     else if(point.dir)command(point.dir,point.attack?'attack':stance,now()-point.at<=180?point.at:now());
   });
   $('arena').addEventListener('pointercancel',event=>touches.delete(event.pointerId));
   for(const button of document.querySelectorAll('[data-dir]'))button.addEventListener('click',event=>{if(event.detail===0&&View.isMounted())command(button.dataset.dir);});
   document.addEventListener('keydown',event=>{
     if(!View.isMounted()||event.target.closest('input,textarea,select,[contenteditable]')||event.ctrlKey||event.metaKey||event.altKey)return;
+    if(event.code==='Space'&&battle?.mode==='survival'&&battle.status==='running'){event.preventDefault();if(!event.repeat)command('up','attack');return;}
     const upgradeKey=/^(?:Digit|Numpad)([1-3])$/.exec(event.code);
     const offer=upgradeKey&&battle?.players.find(player=>player.id===ownId()&&!player.eliminated)?.offer;
     if(offer){

@@ -26,6 +26,7 @@ const ASSETS = new Map([
   ['/js/features.js', ['js/features.js', 'text/javascript; charset=utf-8']],
   ['/js/menu.js', ['js/menu.js', 'text/javascript; charset=utf-8']],
   ['/js/duel-boss.js', ['js/duel-boss.js', 'text/javascript; charset=utf-8']],
+  ['/js/duel-survival.js', ['js/duel-survival.js', 'text/javascript; charset=utf-8']],
   ['/js/duel-engine.js', ['js/duel-engine.js', 'text/javascript; charset=utf-8']],
   ['/js/duel-view.js', ['js/duel-view.js', 'text/javascript; charset=utf-8']],
   ['/js/duel.js', ['js/duel.js', 'text/javascript; charset=utf-8']],

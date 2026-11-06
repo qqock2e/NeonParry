@@ -136,6 +136,9 @@ function duelUpgradeText({ kind, value }) {
 }
 
 function renderDuelGuide(panel) {
+  const intro=document.createElement('section');
+  intro.innerHTML=t('<h3>PvE · Shared-pattern survival</h3><p>Both players receive identical seeded normal threats, ramping from Normal to Extreme over 180s. Every minute stops new spawns; each player enters the same random boss after clearing their own field. Wait after finishing. The wave closes after 45s with a remaining-attempt penalty.</p><h3>Activity · 0–100%</h3><p>Earn activity from kills: Virus 3, DDoS 4, Trojan 6, Worm 8, Ransomware 4, Phishing 7. An unguardable Trojan follow-up grants no activity. Perfect ×1.5. Continuous parries add up to +2; continuous perfects add up to +3. A core hit or empty parry breaks both chains.</p><p>Space, swipe or the activity button spends up to 10%. No incoming pressure: send the full spend to the rival. With pressure: cancel it first and reflect half the remainder. Example: 6 pressure, spend 10 → cancel 6 and send 2. Pressure stacks until the next core hit, then adds that many percentage points once and clears. Empty parries do not consume it. No passive recharge, projectiles or skill/upgrade cards in PvE. Online PvP below still uses its legacy rules.</p>', '<h3>PvE · 같은 패턴 생존전</h3><p>양쪽에 같은 시드의 일반 적 패턴을 공급하며 180초에 걸쳐 보통→익스트림으로 강화합니다. 매분 생성을 멈추고 각자 필드를 비우면 같은 무작위 보스가 등장합니다. 먼저 끝내면 대기합니다. 웨이브 제한은 45초이며 미완료 시 남은 시도횟수에 따른 피해 후 종료합니다.</p><h3>활성도 · 0~100%</h3><p>기본 획득량: 바이러스 3, DDoS 4, 트로이 6, 웜 8, 랜섬웨어 4, 피싱 7. 숙주 실패의 추가 침투는 방어 불가이며 활성도를 주지 않습니다. 정밀 ×1.5. 연속 패링 보너스 최대 +2, 연속 정밀 보너스 최대 +3. 피격·헛방어 시 두 연속 기록이 끊깁니다.</p><p>Space·스와이프·활성도 버튼으로 한 번에 최대 10%를 사용합니다. 내 증폭이 없으면 전부 상대 증폭으로, 있으면 먼저 상쇄하고 남은 양의 절반을 반격합니다. 예: 내 증폭 6에 10 사용 → 6 상쇄, 상대 +2. 증폭은 중첩되고 다음 코어 피격에 한 번 더해진 뒤 사라집니다. 헛방어는 증폭을 소모하지 않습니다. PvE의 자동 충전·수동 탄환·기존 스킬 및 능력 카드는 제거했습니다. 아래 온라인 PvP는 이전 규칙입니다.');
+  panel.append(intro);
   const { RULES, UPGRADE_CATALOG } = window.NeonDuelEngine;
   const title = document.createElement('h3');
   const timing = document.createElement('p');
@@ -144,7 +147,7 @@ function renderDuelGuide(panel) {
   const first = RULES.firstUpgradeMs / 1000;
   const next = RULES.upgradeIntervalMs / 1000;
   const virusCap = UPGRADE_CATALOG.mutation.cap;
-  title.textContent = t('Duel upgrades', '듀얼 능력');
+  title.textContent = t('Legacy online PvP upgrades', '기존 온라인 PvP 능력');
   timing.textContent = t(
     `Your first choices appear after ${first} seconds. Pick one with 1–3 or tap a card. New choices appear ${next} seconds after each pick. Each player gets their own choices, and picks pause during boss rounds.`,
     `첫 능력은 대전 ${first}초 뒤에 나옵니다. 1~3번 키나 터치로 하나를 고르면 ${next}초 뒤에 다음 선택지가 나옵니다. 선택지는 각자 다르게 뽑히고, 보스전 중에는 선택이 멈춥니다.`

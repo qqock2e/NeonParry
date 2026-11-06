@@ -165,3 +165,5 @@
   .duel-upgrade-choice{padding-inline:4px}
   .duel-upgrade-choice kbd{display:none}
 }
+
+#duel-opponent-activity{margin-top:8px;color:var(--muted);font-size:11px}#duel-opponent-activity .skill-track{margin-top:4px;height:4px}
