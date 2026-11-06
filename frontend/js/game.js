@@ -114,7 +114,7 @@ function audioVoice(source,duration,volume,delay=0,filter=null){
   source.onended=()=>{source.disconnect();gain.disconnect();if(filter)filter.disconnect();soundVoices.delete(source);};
   source.start(start);source.stop(start+duration+.012);
 }
-function playSound(event){
+function playSound(event,level=0){
   if(!soundEnabled||!audioContext||audioContext.state!=='running')return;
   try{
     const tone=(frequency,duration=.08,wave='triangle',volume=.12,end=frequency,delay=0)=>{
@@ -126,6 +126,7 @@ function playSound(event){
       if(soundVoices.size>=24)return;
       const source=audioContext.createBufferSource(),filter=audioContext.createBiquadFilter();source.buffer=noiseBuffer;filter.type='highpass';filter.frequency.value=frequency;audioVoice(source,duration,volume,delay,filter);
     };
+    if(event==='overflow'){const note=620*Math.pow(2,Math.min(20,level)/24);tone(note,.09,'sine',.14,note*1.15);tone(note*1.5,.16,'triangle',.1,note*1.7,.055);return;}
     if(event==='boss-warning'){tone(120,.22,'square',.09,180);tone(180,.24,'square',.08,260,.26);noise(.12,.09,1200,.12);return;}
     if(event==='boss-freeze'){noise(.08,.16,2100);tone(750,.25,'triangle',.13,90);return;}
     if(event==='boss-hit'){noise(.07,.2,1300);tone(280,.1,'triangle',.2,90);tone(1100,.09,'sine',.1,550);return;}
@@ -204,10 +205,10 @@ function updateHUD() {
   $('score-label').textContent=isRush()?t('Bosses','보스 처치'):t('Eliminations','방어');
   document.querySelector('.legend').hidden=isRush();
   $('best').textContent = best;
-  $('vulnerability-value').textContent = vulnerability + '%';
+  $('vulnerability-value').textContent = Math.round(vulnerability) + '%';
   $('vulnerability-fill').style.width = Math.min(100,vulnerability) + '%';
   $('vulnerability').setAttribute('aria-valuenow',Math.min(100,vulnerability));
-  $('vulnerability').setAttribute('aria-valuetext',vulnerability + '% · ' + (vulnerability > 100 ? t('Core disconnected','코어 손상') : t('Game ends above 100%','100% 초과 시 종료')));
+  $('vulnerability').setAttribute('aria-valuetext',Math.round(vulnerability) + '% · ' + (vulnerability > 100 ? t('Core disconnected','코어 손상') : t('Game ends above 100%','100% 초과 시 종료')));
   $('state-light').dataset.mode = mode;
   $('arena').dataset.state = mode;
   updateSkillHUD();updateDecoyHUD();updateBossHUD();
@@ -278,7 +279,7 @@ function gameOver() {
   for(const effect of effects)effect.node.remove(); effects=[];
   $('vulnerability').dataset.damaged='false';
   $('overlay-symbol').textContent = '×'; $('overlay-title').textContent = t('Core disconnected','코어 연결 끊김');
-  $('overlay-copy').textContent = t(`${score} eliminations · ${vulnerability}% vulnerability`,`${score}회 방어 · 취약률 ${vulnerability}%`);
+  $('overlay-copy').textContent = t(`${score} eliminations · ${Math.round(vulnerability)}% vulnerability`,`${score}회 방어 · 취약률 ${Math.round(vulnerability)}%`);
   $('overlay').hidden = false; $('action').textContent = t('Retry','다시 방어');
   $('skill-choices').hidden=false; proxyArmed=false; pointers.clear(); $('arena').dataset.armed='false'; updateSkillHUD();
 }
@@ -337,7 +338,7 @@ function checkStageCompletion(){
   if(activeRun.bossRequired&&!activeRun.bossDefeated){maybeQueueBoss();return false;}
   completeStage();return true;
 }
-function stageResultCopy(){return t(`${score} eliminations · ${vulnerability}% vulnerability`,`${score}회 방어 · 취약률 ${vulnerability}%`);}
+function stageResultCopy(){return t(`${score} eliminations · ${Math.round(vulnerability)}% vulnerability`,`${score}회 방어 · 취약률 ${Math.round(vulnerability)}%`);}
 function completeStage(){
   if(mode!=='running'||activeRun?.mode!=='stage')return;
   mode='cleared';cancelAnimationFrame(frame);lastFrame=null;silenceSound();pointers.clear();proxyArmed=false;
@@ -484,7 +485,7 @@ function dealDamage(amount,text,coreHit=true,kind=null) {
   }
   vulnerability=Math.round((vulnerability+amount)*10)/10;recoveryUntil=0;$('vulnerability-fill').dataset.recovering='false';
   if(coreHit)coreFlashUntil=clock+300;
-  playSound(coreHit?'damage':'miss');damageFeedback(coreHit);showMessage(t(`${text} / vulnerability +${amount} pp`,`${text} / 취약률 +${amount}%`),'var(--pink)');updateHUD();
+  playSound(coreHit?'damage':'miss');damageFeedback(coreHit);showMessage(t(`${text} / vulnerability +${Math.round(amount)} pp`,`${text} / 취약률 +${Math.round(amount)}%`),'var(--pink)');updateHUD();
   if(vulnerability>100)gameOver();return{absorbed:false};
 }
 function onImpact(enemy) {
@@ -862,7 +863,7 @@ function parry(dir,inputClock=clock) {
   const healing=perfect?(enemy.kind==='worm'?20:PERFECT_RECOVERY):0;
   if(healing){vulnerability=Math.max(0,vulnerability-healing);recoveryUntil=clock+650;$('vulnerability-fill').dataset.recovering='true';}
   rememberBest();updateHUD();addEffect(dir,perfect?'perfect':'guard');
-  showMessage(perfect?t(`Perfect / vulnerability −${healing} pp`,`정밀 패링 / 취약률 −${healing}%`):t('Guarded','방어'),perfect?'var(--green)':'var(--ink)');
+  showMessage(perfect?t(`Perfect / vulnerability −${Math.round(healing)} pp`,`정밀 패링 / 취약률 −${Math.round(healing)}%`):t('Guarded','방어'),perfect?'var(--green)':'var(--ink)');
   tickWorms(dir);releaseTrojan(contact,true);checkUnlocks();
 }
 function checkUnlocks() {
@@ -1057,7 +1058,7 @@ function refreshLanguage(){
   $('help-open').textContent=t('Help','도움말');$('help-title').textContent=t('How to play','플레이 방법');$('help-close').textContent=t('Close ×','닫기 ×');if(typeof renderGuide==='function')renderGuide();else $('help-content').innerHTML=HELP[language];
   $('action').textContent=mode==='running'?t('Pause','일시정지'):mode==='paused'?t('Resume','계속하기'):mode==='cleared'?t('Retry stage','스테이지 재도전'):mode==='over'?t('Retry','다시 방어'):t('Start','방어 시작');
   if(mode==='paused'){$('overlay-title').textContent=t('Paused','일시정지');$('overlay-copy').textContent=t('Resume when you are ready.','준비되면 같은 위치에서 이어가세요.');}
-  if(mode==='over'){$('overlay-title').textContent=t('Core disconnected','코어 연결 끊김');$('overlay-copy').textContent=t(`${score} eliminations · ${vulnerability}% vulnerability`,`${score}회 방어 · 취약률 ${vulnerability}%`);}
+  if(mode==='over'){$('overlay-title').textContent=t('Core disconnected','코어 연결 끊김');$('overlay-copy').textContent=t(`${score} eliminations · ${Math.round(vulnerability)}% vulnerability`,`${score}회 방어 · 취약률 ${Math.round(vulnerability)}%`);}
   if(mode==='cleared'){$('overlay-title').textContent=t(`Stage ${activeRun.stage} cleared`,`스테이지 ${activeRun.stage} 클리어`);$('overlay-copy').textContent=stageResultCopy();}
   $('message').textContent='';$('share-status').textContent='';updateSoundButton();updateHUD();updateLaneStates();updateFullscreenButton();requestAnimationFrame(fitConsole);
   if(typeof refreshMenu==='function')refreshMenu();

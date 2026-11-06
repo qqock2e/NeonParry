@@ -1,10 +1,10 @@
 # Neon Parry
 
-**현재 버전: 1.6.0 · PvE 생존 듀얼** · [GitHub Pages 게임](https://qqock2e.github.io/NeonParry/) · [패치노트](CHANGELOG.md)
+**현재 버전: 1.6.1 · PvE 생존 듀얼** · [GitHub Pages 게임](https://qqock2e.github.io/NeonParry/) · [패치노트](CHANGELOG.md)
 
 PvP(랜덤 1대1·최대 8인 친구방)와 PvE(CPU 연습)가 포함된 새 소스로 업데이트했습니다. 1.6.0에서는 CPU 연습을 같은 패턴 생존·활성도 증폭/상쇄 방식으로 개편했습니다. 온라인 PvP와 기존 싱글플레이는 이전 규칙을 유지합니다.
 
-**현재 PvE 규칙:** [1.6.0 생존 듀얼](docs/PVE_SURVIVAL.md) · [이전 1.5.2 분석](docs/PVE_1_5_2_ANALYSIS.md)
+**현재 PvE 규칙:** [1.6.1 생존 듀얼](docs/PVE_SURVIVAL.md) · [이전 1.5.2 분석](docs/PVE_1_5_2_ANALYSIS.md)
 
 ## PvE 바로 실행
 
@@ -29,7 +29,7 @@ npm run build:web
 - 제공된 `Neon-Parry-1.5.2-Source.zip`을 `imports/`에 원본 그대로 보존하고 SHA-256 매니페스트를 추가했습니다.
 - 이전 기준 `4e6ffe1`은 Git 이력에 남습니다. 첨부 README의 원본은 `imports/README-1.5.2-original.md`에 보관합니다.
 - 첨부 파일의 CRLF 개행을 `.editorconfig`에 맞게 LF로 통일하고 현재 저장소의 Pages 출처를 Render/Codespaces 설정에 추가했습니다. 게임 코드는 개행을 제외하면 첨부 소스 그대로입니다.
-- 첨부 원본 테스트 169개가 통과했습니다. 두 보스의 종료·전투 재개 검사를 하나 추가하여 1.5.2 당시 검사는 170개였습니다. 1.6.0은 새 생존 모드 검사를 포함해 184개입니다. 구체적 브라우저 검증·한계는 분석 문서를 확인하세요.
+- 첨부 원본 테스트 169개가 통과했습니다. 두 보스의 종료·전투 재개 검사를 하나 추가하여 1.5.2 당시 검사는 170개였습니다. 1.6.0은 새 생존 모드 검사를 포함해 188개입니다. 구체적 브라우저 검증·한계는 분석 문서를 확인하세요.
 - 첨부 README의 외부 공개 서버·다른 GitHub 기준 커밋은 제공 파일의 출처 정보이며 이 저장소에서 새로 검증·배포한 서버 주소가 아닙니다. 외부 Render 서비스를 새로 생성하거나 기존 서비스를 조작하지 않았습니다.
 
 ## PvP·서버

@@ -312,7 +312,7 @@
         at = time;
         boss.render(player.boss, at, GUARD_WINDOW);
         if (name.textContent !== label) name.textContent = label;
-        const percent = player.eliminated ? tr('Out', '탈락') : player.vulnerability + '%';
+        const percent = player.eliminated ? tr('Out', '탈락') : Math.round(player.vulnerability) + '%';
         if (value.textContent !== percent) value.textContent = percent;
         const out = String(!!player.eliminated);
         if (arena.dataset.eliminated !== out) arena.setAttribute('data-eliminated', out);
@@ -478,6 +478,8 @@
     localBoss.reset(); localBoss = null;
     $('game-shell').removeAttribute('data-duel-group');
     $('game-shell').removeAttribute('data-duel-upgrades');
+    $('game-shell').removeAttribute('data-duel-survival');
+    for(const id of ['duel-self-rail','duel-rival-rail','duel-self-risk','duel-rival-risk','duel-overflow'])$(id).hidden=true;
     $('duel-opponent').hidden = true;$('duel-opponent-activity').hidden=true;
     $('duel-opponent').setAttribute('aria-labelledby', 'duel-opponent-name');
     $('duel-single-opponent').hidden = false; $('duel-opponent-group').hidden = true;
@@ -655,6 +657,9 @@
       } else if (own && manualAttack(event)) {
         strikePose(event.dir, false); addEffect(event.dir, 'guard'); playSound('guard');
         setMessage(tr('Attack sent ', '공격 전송 ') + arrow[event.dir]);
+      } else if(event.type==='overflow'&&own){
+        playSound('overflow',event.overflow);
+        const ovf=$('duel-overflow');ovf.classList.remove('pulse');void ovf.offsetWidth;ovf.classList.add('pulse');
       } else if(event.type==='activity'&&own){
         playSound('proxy');setMessage(tr('Activity / −','활성도 / −')+event.spent+'% · '+tr('Cancel ','상쇄 ')+event.cancelled+' · '+tr('Pressure ','증폭 ')+event.reflected);
       } else if (event.type === 'attack' && own && event.source === 'mutation') {
@@ -671,19 +676,21 @@
       } else if (event.type === 'boss_phase' && own) {
         const sound = { reaction: 'boss-freeze', telegraph: 'reveal', retry: 'boss-fail', failed: 'boss-fail', finisher: 'boss-finish' }[event.phase];
         if (sound) playSound(sound);
+      } else if(event.type==='boss_done'&&own&&survival&&event.cleared){
+        setMessage(tr('Boss cleared / pressure −','보스 처치 / 증폭 −')+Math.round(event.reduced||0)+'%p','var(--green)');
       } else if (event.type === 'boss_repair' && own && event.healing > 0) {
         showHealing(event.healing);
       } else if (event.type === 'miss' && own) {
         addEffect(event.dir, 'miss'); playSound('miss');
         const penalized = hasMissPenalty(event);
         if (penalized) damageFeedback();
-        const penalty = penalized ? ' / +' + event.damage + '%p' : '';
+        const penalty = penalized ? ' / +' + Math.round(event.damage) + '%p' : '';
         const label = event.reason === 'wrong_sequence' ? tr('Wrong sequence', '순서 오류') : tr('Empty guard', '헛방어');
         setMessage(label + penalty, 'var(--pink)');
       } else if (event.type === 'hit') {
         if (own) { damageFeedback(true); coreFlashUntil = clock + 300; playSound('damage'); }
         if (own || event.from === ownId) {
-          setMessage((own ? tr('Core hit / +', '코어 피격 / +') : tr('Attack hit / +', '공격 적중 / +')) + event.damage + '%p', 'var(--pink)');
+          setMessage((own ? tr('Core hit / +', '코어 피격 / +') : tr('Attack hit / +', '공격 적중 / +')) + Math.round(event.damage) + '%p', 'var(--pink)');
         }
       } else if (event.type === 'finish') playSound(state.winnerId === ownId ? 'perfect' : 'gameover');
     }
@@ -691,13 +698,13 @@
     for (const [id, actor] of actors) if (!pending.has(id)) { removeEnemy(actor); actors.delete(id); }
     for (const [scene, pending] of rivalPending) scene.finishFrame(pending);
     vulnerability = mine.vulnerability; score = guards;
-    $('vulnerability-value').textContent = mine.vulnerability + '%';
+    $('vulnerability-value').textContent = Math.round(mine.vulnerability) + '%';
     $('vulnerability-fill').style.width = Math.min(100, mine.vulnerability) + '%';
     $('vulnerability-fill').dataset.recovering = String(clock < recoveryUntil);
     $('vulnerability').setAttribute('aria-valuenow', mine.vulnerability);
-    $('vulnerability').setAttribute('aria-valuetext', mine.vulnerability + '%');
+    $('vulnerability').setAttribute('aria-valuetext', Math.round(mine.vulnerability) + '%');
     $('score').textContent = guards; $('score-label').textContent = tr('Defenses', '방어');
-    bestLabel().textContent = opponentLabel(opponents[0], 0); $('best').textContent = opponents[0].vulnerability + '%';
+    bestLabel().textContent = opponentLabel(opponents[0], 0); $('best').textContent = Math.round(opponents[0].vulnerability) + '%';
     $('run-label').textContent = tr('Duel', '듀얼') + (options.connection ? ' · ' + options.connection : '');
     const speed = (state.speedPercent ?? 0) + (mine.upgrades?.attack_speed ?? 0);
     const speedReadout = $('duel-speed');
@@ -728,21 +735,36 @@
     if (options.stance) setStance(options.stance);
     updateEffects(); updateLaneStates(); $('core').style.opacity = clock < coreFlashUntil ? '.4' : '1';
     if (messageUntil && clock > messageUntil) { $('message').textContent = ''; messageUntil = 0; }
-    $('duel-opponent-activity').hidden=!survival;
+    $('duel-opponent-activity').hidden=true;
     if(survival){
-      $('duel-opponent-activity-label').textContent=tr('Activity ','활성도 ')+(opponents[0].activity||0).toFixed(1)+'%';
-      $('duel-opponent-activity-meter').setAttribute('aria-valuenow',opponents[0].activity||0);
-      $('duel-opponent-activity-fill').style.width=(opponents[0].activity||0)+'%';
+      $('game-shell').setAttribute('data-duel-survival','');
+      paintSurvivalMeters('self',mine);paintSurvivalMeters('rival',opponents[0]);
+      $('duel-overflow').hidden=false;$('duel-overflow').textContent='OVF +'+(mine.overflow||0)+'%';
       $('skill-glyph').setAttribute('d','M3 16H9L13 6L19 26L23 16H29');
       $('skill-status').style.color=mine.amplification>0?'var(--pink)':'var(--muted)';
       $('skill-name').textContent=tr('Activity','활성도')+' '+energy.toFixed(1)+'%';
-      $('skill-key').textContent=tr('Space / swipe · spend up to 10%','Space / 스와이프 · 최대 10% 사용');
-      $('skill-status').textContent=tr('My pressure +','내 증폭 +')+(mine.amplification||0)+'%p · '+tr('Rival +','상대 +')+(opponents[0].amplification||0)+'%p';
+      $('skill-key').textContent=tr('Space / swipe · up to ','Space / 스와이프 · 최대 ')+(10+(mine.overflow||0))+'%';
+      $('skill-status').textContent=tr('My pressure +','내 증폭 +')+(mine.amplification||0)+'%p · '+tr('Rival +','상대 +')+Math.round(opponents[0].amplification||0)+'%p';
       $('skill').disabled=bossLocked||eliminated||energy<=0;$('skill').dataset.ready=String(!bossLocked&&!eliminated&&energy>0);
       $('skill').setAttribute('aria-label',tr('Use activity','활성도 사용'));
       $('arena').dataset.stance='guard';
     }
 
+  }
+  function paintSurvivalMeters(who,p){
+    const activity=p.activity||0,turns=p.amplificationQueue||[],base=Math.max(0,Math.min(100,p.vulnerability));
+    $('duel-'+who+'-rail').hidden=false;$('duel-'+who+'-risk').hidden=false;
+    $('duel-'+who+'-activity-value').textContent=Math.round(activity)+'%';
+    $('duel-'+who+'-activity-fill').style.height=activity+'%';
+    const meter=$('duel-'+who+'-activity-meter');meter.setAttribute('aria-valuenow',activity);meter.setAttribute('aria-label',tr('Activity','활성도'));
+    $('duel-'+who+'-risk-label').textContent=tr('Vulnerability','취약률');
+    $('duel-'+who+'-risk-value').textContent=Math.round(p.vulnerability)+'%';
+    $('duel-'+who+'-risk-fill').style.width=base+'%';
+    const risk=$('duel-'+who+'-risk-meter');risk.setAttribute('aria-valuenow',p.vulnerability);
+    risk.setAttribute('aria-valuetext',Math.round(p.vulnerability)+'% · '+turns.map(v=>'+'+Math.round(v)).join(' → '));
+    const container=$('duel-'+who+'-risk-turns');container.replaceChildren();let start=base;
+    turns.forEach((value,i)=>{const segment=document.createElement('i');segment.style.left=Math.min(100,start)+'%';segment.style.width=Math.max(0,Math.min(value,100-start))+'%';segment.dataset.turn=i%2?'later':'next';segment.title=tr('Hit ','피격 ')+(i+1)+' / +'+Math.round(value)+'%p';container.appendChild(segment);start+=value;});
+    $('duel-'+who+'-risk-next').textContent=turns.length?tr('NEXT HIT ','다음 피격 ')+turns.map(v=>'+'+Math.round(v)).join(' → ')+'%p':tr('NO QUEUED PRESSURE','대기 증폭 없음');
   }
   window.NeonDuelView = Object.freeze({
     mount, render, unmount, setMessage, banner, hideBanner, setStance, predictGuard, setLatency, setTarget,
