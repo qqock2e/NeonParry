@@ -287,7 +287,7 @@
     for (const id of ['decoy-folder', 'lane-states']) node(id).remove();
     const boss = createBossScene(node, arena);
     const threats = new Map(), particles = [];
-    let at = 0, posedUntil = 0, flashedUntil = 0, hitUntil = 0, penaltyUntil = 0;
+    let at = 0, posedUntil = 0, flashedUntil = 0, hitUntil = 0, penaltyUntil = 0, attackShakeUntil = 0, attackShakePower = 0;
     function schedule(effect, duration, draw, foreground = false) {
       node(foreground ? 'foreground-fx' : 'effects').append(effect);
       particles.push({ node: effect, at, duration, draw }); draw(0);
@@ -338,7 +338,8 @@
         return pending;
       },
       play(event) {
-        if (event.type === 'hit') {
+        if(event.type==='activity'){attackShakeUntil=at+180;attackShakePower=activityShake(event.spent);
+        } else if (event.type === 'hit') {
           hitUntil = at + 280;
           glitchAt(240, 240, 39, 'damage', schedule);
         } else if (event.type === 'worm_charge') {
@@ -367,6 +368,8 @@
         if (value.dataset.penalty !== penalized) value.setAttribute('data-penalty', penalized);
         node('core').style.opacity = damaged ? '.4' : '1';
         arena.dataset.damaged = String(damaged);
+        const strength=!reducedMotion.matches&&at<attackShakeUntil?attackShakePower*(attackShakeUntil-at)/180:0;
+        node('world').setAttribute('transform',strength?`translate(${Math.sin(at*.17)*strength} ${Math.cos(at*.23)*strength*.65})`:'translate(0 0)');
       },
       reset
     };
@@ -639,6 +642,10 @@
       const own = event.playerId === ownId;
       const bossAction = event.source === 'boss';
       rivals.get(event.playerId)?.play(event);
+      if(event.type==='activity'){
+        if(own||event.to===ownId)shakeCamera(activityShake(event.spent));
+        if(event.to!==event.playerId)rivals.get(event.to)?.play(event);
+      }
       if (event.type === 'guard' && own) {
         breakAttack(actors.get(event.attackId), event);
         const strong = strongGuard(event);
@@ -739,7 +746,9 @@
     if(survival){
       $('game-shell').setAttribute('data-duel-survival','');
       paintSurvivalMeters('self',mine);paintSurvivalMeters('rival',opponents[0]);
-      $('duel-overflow').hidden=false;$('duel-overflow').textContent='OVF +'+(mine.overflow||0)+'%';
+      $('duel-overflow').hidden=!(mine.overflow>0);$('duel-overflow').textContent='OVF +'+(mine.overflow||0)+'%';
+      $('duel-overflow').style.color=overflowColor(mine.overflow||0);
+      $('duel-overflow').dataset.max=String(mine.overflow>=20);
       $('skill-glyph').setAttribute('d','M3 16H9L13 6L19 26L23 16H29');
       $('skill-status').style.color=mine.amplification>0?'var(--pink)':'var(--muted)';
       $('skill-name').textContent=tr('Activity','활성도')+' '+energy.toFixed(1)+'%';
@@ -750,6 +759,13 @@
       $('arena').dataset.stance='guard';
     }
 
+  }
+  function activityShake(spent){return Math.min(7,.8+Math.max(0,spent)*.2);}
+  function overflowColor(value){
+    const stops=[[0,[183,234,170]],[4,[244,164,90]],[8,[239,93,110]],[11,[179,115,236]],[14,[97,137,242]],[17,[140,225,240]],[20,[9,12,15]]];
+    const v=Math.max(0,Math.min(20,value));
+    for(let i=1;i<stops.length;i++)if(v<=stops[i][0]){const [a,c]=stops[i-1],[b,d]=stops[i],t=(v-a)/(b-a);return 'rgb('+c.map((n,j)=>Math.round(n+(d[j]-n)*t)).join(',')+')';}
+    return 'rgb(9,12,15)';
   }
   function paintSurvivalMeters(who,p){
     const activity=p.activity||0,turns=p.amplificationQueue||[],base=Math.max(0,Math.min(100,p.vulnerability));

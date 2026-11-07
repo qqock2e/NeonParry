@@ -9,7 +9,7 @@
   const tr=(en,ko)=>t(en,ko), localOnly=!!(window.neonDesktop||window.NEON_CONFIG?.offlineOnly);
   let session=null,client=null,membership=null,room=null,battle=null,matchTicket=null,randomDuel=false;
   let stream=null,poll=null,frame=null,generation=0,busy=false,connecting=false,stance='guard',connected=false,lastSeen=0,roundId='';
-  const MODE='clash', STATE_TIMEOUT=3000;
+  const MODE='survival', STATE_TIMEOUT=3000;
   let clockOffset=0, clockSamples=[], pingTimer=null, lastRenderAt=-Infinity, seq=0, selectedTarget=null;
   let practiceClock=0,lastFrame=null,nextCpuAttack=0,cpuPlans=new Map(),touches=new Map();
   const predictedGuards=new Map();
@@ -34,10 +34,10 @@
       'duel-random':['Find opponent','랜덤 매칭'],'duel-create':['Create room','방 만들기'],'duel-join':['Join','참가'],
       'duel-practice':['Practice vs CPU','CPU 연습'],'duel-level-label':['Opponent','연습 상대'],
       'duel-settings-label':['Connection settings','접속 설정'],'duel-name-label':['Name','이름'],'duel-server-url-label':['Server address','서버 주소'],
-      'duel-online-note':['Random 1v1 or a room for up to 8.','랜덤 1대1 또는 최대 8인 친구방.'],
+      'duel-online-note':['Random 1v1 or a two-player survival room.','랜덤 1대1 또는 2인 생존 듀얼 친구방.'],
       'duel-rules-title':['Rules','대전 규칙'],
-      'duel-rules-text':['CPU practice: identical endless patterns. Parry to earn activity; Space or swipe spends up to 10% to cancel pressure or amplify the opponent’s next hit.','CPU 연습: 같은 무한 패턴을 패링해 활성도를 모으세요. Space·스와이프는 최대 10%를 써서 내 증폭을 상쇄하거나 상대의 다음 피격을 증폭합니다.'],
-      'duel-threats-text':['CPU: clear your field for a random boss each minute. Wait for both players or the 45s wave deadline. No skill cards. Online PvP retains the previous rules.','CPU: 매분 필드를 비우면 무작위 보스가 등장합니다. 모두 마치거나 웨이브 45초가 지나면 재개합니다. 기존 능력 카드는 없습니다. 온라인 PvP는 이전 규칙입니다.'],
+      'duel-rules-text':['CPU / online: identical endless patterns. Parry to earn activity; Space or swipe spends up to 10% + OVF to cancel pressure or amplify the opponent’s next hit.','CPU / 온라인: 같은 무한 패턴을 패링해 활성도를 모으세요. Space·스와이프는 최대 10% + OVF를 써서 내 증폭을 상쇄하거나 상대의 다음 피격을 증폭합니다.'],
+      'duel-threats-text':['CPU: clear your field for a random boss each minute. Wait for both players or the 45s wave deadline. No skill cards. Online PvP uses the same activity, queued pressure and OVF rules.','CPU: 매분 필드를 비우면 무작위 보스가 등장합니다. 모두 마치거나 웨이브 45초가 지나면 재개합니다. 기존 능력 카드는 없습니다. 온라인 PvP도 같은 활성도·증폭 턴·OVF 규칙입니다.'],
       'duel-matching-label':['Finding opponent…','상대를 찾고 있습니다…'],
       'duel-matching-note':['The duel starts when another player joins matchmaking. You can cancel at any time.','다른 플레이어가 랜덤 매칭에 들어오면 시작합니다. 언제든 취소할 수 있습니다.'],
       'duel-cancel':['Cancel','취소'],'duel-room-label':['Room code · tap to copy','방 코드 · 눌러서 복사'],
@@ -59,7 +59,7 @@
   function mount(players){
     View.mount({
       players,selfId:ownId(),onTarget:session==='online'?selectTarget:null,onUpgrade:pickUpgrade,
-      upgradesEnabled:session==='practice'||room?.mode===MODE
+      upgradesEnabled:session==='practice'||room?.mode==='clash'
     });
     $('duel-view').hidden=true;$('main-menu').hidden=true;showGameView();setStance('guard');unlockAudio();
   }
@@ -280,7 +280,7 @@
     else if(canSend())send(command);
   }
   function selectTarget(targetId){
-    if(session!=='online'||battle?.mode!==MODE||battle.status!=='running'||battle.boss||!canSend())return;
+    if(session!=='online'||battle?.mode!=='clash'||battle.status!=='running'||battle.boss||!canSend())return;
     const me=battle.players.find(player=>player.id===ownId());
     if(me?.eliminated||!battle.players.some(player=>player.id===targetId&&player.id!==ownId()&&!player.eliminated))return;
     selectedTarget=targetId;

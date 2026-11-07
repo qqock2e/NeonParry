@@ -181,8 +181,10 @@
 .duel-risk-track{position:relative;height:13px;background:#24282d;overflow:hidden}.duel-risk-current{height:100%;background:#c291b0;transition:width .12s linear}.duel-risk-turns{position:absolute;inset:0}.duel-risk-turns i{position:absolute;height:100%;background:#ef6d7b;box-shadow:inset 2px 0 #15191d}.duel-risk-turns i[data-turn="later"]{background:#e8bf71}.duel-risk small{display:block;margin-top:5px;color:#ef8b91;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
 #game-shell[data-duel-survival] .sidebar>div:nth-child(2),#game-shell[data-duel-survival] #skill-meter,#game-shell[data-duel-survival] #duel-opponent-vulnerability{display:none}
 #game-shell[data-duel-survival] .console{position:relative}
-#duel-overflow{position:absolute;left:47px;top:40%;pointer-events:none;font:bold clamp(13px,2vw,23px) monospace;letter-spacing:-1px;color:#e8bf71;text-shadow:2px 2px #171a20;z-index:4}
+#duel-overflow{position:absolute;left:48px;top:32px;pointer-events:none;font:bold clamp(13px,2vw,23px) monospace;letter-spacing:-1px;color:#e8bf71;text-shadow:2px 2px #171a20;z-index:4}
 #duel-overflow[hidden]{display:none}#duel-overflow.pulse{animation:duel-ovf-hit .28s ease-out}
-@keyframes duel-ovf-hit{0%{transform:translateX(-7px) scale(1.4);color:white}35%{transform:translateX(3px) scale(1.1)}100%{transform:none}}
-@media(max-width:600px){#game-shell[data-duel-survival] .layout{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}#game-shell[data-duel-survival] .duel-field-wrap{grid-template-columns:24px minmax(0,1fr);gap:5px}.duel-activity-meter{width:20px}.duel-activity-rail output{font-size:10px}.duel-risk-label{font-size:9px}.duel-risk-label output{font-size:13px}#duel-overflow{left:33px}}
+@keyframes duel-ovf-hit{0%{transform:translateX(-7px) scale(1.4);}35%{transform:translateX(3px) scale(1.1)}100%{transform:none}}
+@media(max-width:600px){#game-shell[data-duel-survival] .layout{grid-template-columns:minmax(0,1.35fr) minmax(0,1fr)}#game-shell[data-duel-survival] .duel-field-wrap{grid-template-columns:24px minmax(0,1fr);gap:5px}.duel-activity-meter{width:20px}.duel-activity-rail output{font-size:10px}.duel-risk-label{font-size:9px}.duel-risk-label output{font-size:13px}#duel-overflow{left:34px;top:29px}}
 @media(prefers-reduced-motion:reduce){#duel-overflow.pulse{animation:none}.duel-activity-meter>div,.duel-risk-current{transition:none}}
+
+#duel-overflow{transition:color .18s linear}#duel-overflow[data-max="true"]{text-shadow:-1px -1px 0 #b7eaaa,1px -1px 0 #b7eaaa,-1px 1px 0 #b7eaaa,1px 1px 0 #b7eaaa}

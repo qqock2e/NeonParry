@@ -22,7 +22,7 @@ function createServer({store=new RoomStore(),matchmaking,origins=parseOrigins(pr
   function stopTimer(){if(!streams.size&&battleTimer){clearInterval(battleTimer);battleTimer=null;}}
   function shouldSend(room,now){
     const last=lastSent.get(room);
-    return room.mode!=='clash'||!last||last.battle!==room.battle||last.revision!==room.revision||last.event!==room.battle.nextEventId||last.status!==room.battle.status||now-last.at>=heartbeatMs;
+    return room.mode==='classic'||!last||last.battle!==room.battle||last.revision!==room.revision||last.event!==room.battle.nextEventId||last.status!==room.battle.status||now-last.at>=heartbeatMs;
   }
   function sendState(code,state){
     const viewers=streams.get(code);if(!viewers)return;
@@ -45,7 +45,7 @@ function createServer({store=new RoomStore(),matchmaking,origins=parseOrigins(pr
   function closeStreams(code,playerId){const viewers=streams.get(code);if(viewers)for(const viewer of viewers)if(!playerId||viewer.playerId===playerId)viewer.res.end();}
   function leaveMember(code,token,member=store.authorize(code,token)){
     const{room,entry}=member;
-    if(room.mode==='clash'){
+    if(room.mode!=='classic'){
       const result=store.leave(code,token);
       if(!result.closed&&room.battle)sendState(code,store.battleSnapshot(room));
       closeStreams(code,entry.id);return result;
@@ -57,7 +57,7 @@ function createServer({store=new RoomStore(),matchmaking,origins=parseOrigins(pr
       const room=store.rooms.get(code);
       if(!room||!room.battle){closeStreams(code);continue;}
       const now=store.now();if([...viewers].some(viewer=>!viewer.res.destroyed))room.touchedAt=now;
-      if(room.mode==='clash')store.advanceBattle(room,now);
+      if(room.mode!=='classic')store.advanceBattle(room,now);
       if(shouldSend(room,now))sendState(code,store.battleSnapshot(room));
     }
     stopTimer();

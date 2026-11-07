@@ -9,7 +9,7 @@ const MAX_GUARD_DELAY_MS=120;
 const PING_TTL_MS=5000;
 const isChoiceId=value=>typeof value==='string'&&/^[A-Za-z0-9_-]{1,64}$/.test(value);
 function parseMode(mode='classic'){
-  if(mode!=='classic'&&mode!=='clash')throw new ApiError(400,'INVALID_MODE','Choose classic or clash.');
+  if(!['classic','clash','survival'].includes(mode))throw new ApiError(400,'INVALID_MODE','Choose classic, clash or survival.');
   return mode;
 }
 function player(name){return{id:randomBytes(12).toString('hex'),name,ready:false,token:randomBytes(32).toString('base64url')};}
@@ -24,7 +24,7 @@ class RoomStore{
     if(room.phase===phase)return;
     room.phase=phase;room.revision++;
     if(phase==='finished'){
-      if(room.mode==='clash'){
+      if(room.mode!=='classic'){
         // A disconnected fighter can return as a spectator during this round.
         // A member who never returned must not block readiness for the next.
         const present=room.players.filter(p=>!room.presence.get(p.id)?.timedOut);
@@ -52,8 +52,8 @@ class RoomStore{
   }
   join(code,name){
     const room=this.get(code);
-    if(room.mode==='clash')this.advanceBattle(room);
-    if(room.players.length>=room.maxPlayers||(room.phase!=='waiting'&&!(room.mode==='clash'&&room.phase==='finished')))throw new ApiError(409,'ROOM_FULL','Room is full or already starting.');
+    if(room.mode!=='classic')this.advanceBattle(room);
+    if(room.players.length>=room.maxPlayers||(room.phase!=='waiting'&&!(room.mode!=='classic'&&room.phase==='finished')))throw new ApiError(409,'ROOM_FULL','Room is full or already starting.');
     return this.attach(room,name);
   }
   authorize(code,token){const room=this.get(code),hash=digest(token),entry=room.players.find(p=>timingSafeEqual(p.tokenHash,hash));if(!entry)throw new ApiError(401,'INVALID_TOKEN','Invalid room membership.');room.touchedAt=this.now();return{room,entry};}
@@ -62,7 +62,7 @@ class RoomStore{
     if(!['waiting','finished'].includes(room.phase)||room.players.length<2||!room.players.every(p=>p.ready))return;
     const roster=room.players.map(({id,name})=>({id,name}));
     const match={id:randomBytes(16).toString('hex'),seed:randomBytes(4).readUInt32BE(),startAt:this.now()+3000,mode:room.mode};
-    if(room.mode==='clash')match.players=roster;
+    if(room.mode!=='classic')match.players=roster;
     room.battle=duel.createMatch({...match,players:roster.map(p=>p.id),guardGraceMs:room.mode==='clash'?MAX_GUARD_DELAY_MS:0});
     room.match=match;room.phase='starting';room.presence=new Map(roster.map(p=>[p.id,{connections:0,disconnectedAt:match.startAt,lastSeq:-1,lastTargetSeq:-1,sequences:new Set()}]));room.revision++;
   }
@@ -130,7 +130,7 @@ class RoomStore{
   forfeit(code,token){const{room,entry}=this.authorize(code,token);if(room.battle&&room.battle.status!=='finished')duel.forfeit(room.battle,entry.id,this.now());return room.battle?this.battleSnapshot(room):null;}
   leave(code,token){
     const{room,entry}=this.authorize(code,token);
-    if(room.mode==='clash'&&room.battle){
+    if(room.mode!=='classic'&&room.battle){
       const now=this.now();this.advanceBattle(room,now);
       if(room.battle.status!=='finished'&&room.presence.has(entry.id))duel.forfeit(room.battle,entry.id,now);
       this.advanceRoom(room,now);

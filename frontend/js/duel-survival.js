@@ -14,7 +14,7 @@
   function createMatch({players,startAt=0,seed=1}={}){
     if(!Array.isArray(players)||players.length!==2||players.some(p=>typeof p!=='string'||!p)||new Set(players).size!==2||!Number.isFinite(startAt))throw new TypeError('Survival needs two distinct players and a finite start time.');
     let rng=2166136261;for(const c of String(seed))rng=Math.imul(rng^c.charCodeAt(0),16777619)>>>0;
-    return{mode:'survival',startAt,seed,rng,now:Math.min(0,startAt),status:'countdown',winnerId:null,finishedAt:null,finishReason:null,
+    return{mode:'survival',startAt,seed,rng,now:Math.max(0,startAt-3000),status:'countdown',winnerId:null,finishedAt:null,finishReason:null,
       players:players.map((id,i)=>({id,vulnerability:0,energy:0,activity:0,amplification:0,amplificationQueue:[],overflow:0,parryStreak:0,perfectStreak:0,streak:0,kills:0,eliminated:false,boss:null,waveState:null,lockedUntil:{},lastGuardAt:{},lastAttackAt:-Infinity,lastSeq:-1,targetId:players[1-i],offer:null,upgrades:{}})),
       attacks:[],events:[],nextAttackId:1,nextEventId:1,nextPatternAt:startAt+1200,lastPatternArrival:-Infinity,patternIndex:0,nextBossAt:startAt+60000,boss:null};
   }
